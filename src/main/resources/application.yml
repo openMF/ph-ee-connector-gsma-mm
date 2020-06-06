@@ -1,0 +1,21 @@
+camel:
+  server-port: 5000
+  springboot:
+    main-run-controller: true
+  dataformat:
+    json-jackson:
+      auto-discover-object-mapper: true
+
+bpmn:
+  flows:
+    some-flow: "SomeFlow-DFSPID"
+
+zeebe:
+  client:
+    max-execution-threads: 100
+    number-of-workers: 14
+    evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
+  broker:
+    contactpoint: "ph-ee-zeebe:26500"
+
+dfspids: "DFSPID"
