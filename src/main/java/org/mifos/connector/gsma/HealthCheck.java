@@ -11,6 +11,11 @@ public class HealthCheck extends RouteBuilder {
     public void configure() {
         from("rest:GET:/")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant(""));
+                .setBody(constant("All Good"));
+
+        from("rest:GET:/accesstoken")
+                .to("direct:get-access-token")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
+                .setBody(simple("${body}"));
     }
 }
