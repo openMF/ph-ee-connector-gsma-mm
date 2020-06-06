@@ -16,6 +16,12 @@ zeebe:
     number-of-workers: 14
     evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
   broker:
-    contactpoint: "ph-ee-zeebe:26500"
+    contactpoint: "4ae8d42c-5f02-4e18-b4d4-f4d3d92fc824.zeebe.camunda.io:443"
+
+gsma:
+  auth:
+    host: https://sandbox.mobilemoneyapi.io/v1/oauth/accesstoken
+    client-key: bBvcGtIhyfAPNTMwuvACLyVrzcaTsyXR
+    client-secret: PAL6ekftxxg02O58
 
 dfspids: "DFSPID"
