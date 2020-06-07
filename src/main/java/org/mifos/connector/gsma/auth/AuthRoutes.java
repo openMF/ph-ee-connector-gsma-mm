@@ -2,12 +2,15 @@ package org.mifos.connector.gsma.auth;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenDTO;
+import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.auth.dto.ErrorDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +18,6 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Stack;
 
 @Component
 public class AuthRoutes extends RouteBuilder {
@@ -29,7 +31,8 @@ public class AuthRoutes extends RouteBuilder {
     @Value("${gsma.auth.client-secret}")
     private String clientSecret;
 
-    private AuthProcessor authProcessor;
+    @Autowired
+    private AccessTokenStore accessTokenStore;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -47,13 +50,15 @@ public class AuthRoutes extends RouteBuilder {
         from("direct:access-token-save")
                 .id("access-token-save")
                 .unmarshal().json(JsonLibrary.Jackson, AccessTokenDTO.class)
-                .process(exchange -> {
-                    LocalDateTime expiryDateTime = LocalDateTime.now().plusSeconds(exchange.getIn().getBody(AccessTokenDTO.class).getExpires_in());
-                    DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-                    exchange.setProperty("expiry", expiryDateTime.format(formatter));
-                    exchange.setProperty("accessToken", exchange.getIn().getBody(AccessTokenDTO.class).getAccess_token());
+                .process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+                        accessTokenStore.setAccessToken(exchange.getIn().getBody(AccessTokenDTO.class).getAccess_token());
+                        accessTokenStore.setExpiresOn(exchange.getIn().getBody(AccessTokenDTO.class).getExpires_in());
+                        logger.info(accessTokenStore.getAccessToken());
+                    }
                 })
-                .log("Access token added to property");
+                .log("Access token added to property: " + accessTokenStore.getAccessToken());
 
         from("direct:access-token-fetch")
                 .id("access-token-fetch")
@@ -97,29 +102,6 @@ public class AuthRoutes extends RouteBuilder {
         return encodedAuth;
     }
 
-    @Component
-    class AccessToken {
-        public String accessToken;
-        public LocalDateTime expiresOn;
 
-        public AccessToken() {
-        }
-
-        public String getAccessToken() {
-            return accessToken;
-        }
-
-        public void setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
-        }
-
-        public LocalDateTime getExpiresOn() {
-            return expiresOn;
-        }
-
-        public void setExpiresOn(int expires_in) {
-            this.expiresOn = LocalDateTime.now().plusSeconds(expires_in);
-        }
-    }
 
 }
