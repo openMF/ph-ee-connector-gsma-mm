@@ -10,6 +10,7 @@ public class AccessTokenStore {
     public LocalDateTime expiresOn;
 
     public AccessTokenStore() {
+        this.expiresOn = LocalDateTime.now();
         System.out.println("ACCESS TOKEN STORE CREATED!");
     }
 
@@ -28,4 +29,12 @@ public class AccessTokenStore {
     public void setExpiresOn(int expires_in) {
         this.expiresOn = LocalDateTime.now().plusSeconds(expires_in);
     }
+
+    public boolean isValid(LocalDateTime dateTime) {
+        if (dateTime.isBefore(expiresOn))
+            return true;
+        else
+            return false;
+    }
+
 }
