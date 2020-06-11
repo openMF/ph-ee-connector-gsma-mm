@@ -12,4 +12,8 @@ public class CamelProperties {
     public static final String AUTH_HOST = "authUrl";
     public static final String CLIENT_KEY = "clientKey";
     public static final String CLIENT_SECRET = "clientSecret";
+    public static final String ACCESS_TOKEN = "accessToken";
+    public static final String IDENTIFIER_TYPE = "identifier_type";
+    public static final String IDENTIFIER = "identifier";
+    public static final String ACCOUNT_STATUS_RESPONSE = "accountStatusResponse";
 }
