@@ -75,6 +75,9 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                         .log(LoggingLevel.INFO, "Routing to account name handler")
                         .to("direct:account-name-handler");
 
+        /**
+         * Account balance response handler
+         */
         from("direct:account-balance-handler")
                 .id("account-balance-handler")
                 .unmarshal().json(JsonLibrary.Jackson, AccountBalanceResponseDTO.class)
