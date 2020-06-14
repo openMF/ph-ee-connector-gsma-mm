@@ -6,11 +6,13 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.identifier.dto.AccountBalanceResponseDTO;
-import org.mifos.connector.gsma.identifier.dto.AccountErrorDTO;
+import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountNameResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountStatusResponseDTO;
+import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
 import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PARTY_LOOKUP_FAILED;
 
 @Component
 public class IdentifierLookupRoutes extends RouteBuilder {
@@ -42,6 +45,9 @@ public class IdentifierLookupRoutes extends RouteBuilder {
     @Value("${gsma.api.account}")
     private String account;
 
+    @Autowired
+    private IdentifierResponseProcessor identifierResponseProcessor;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
@@ -52,18 +58,18 @@ public class IdentifierLookupRoutes extends RouteBuilder {
          */
         from("direct:account-error")
                 .id("account-error")
-                .unmarshal().json(JsonLibrary.Jackson, AccountErrorDTO.class)
+                .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
                 .process(exchange -> {
-                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountErrorDTO.class).getErrorDescription());
-                    logger.error(exchange.getIn().getBody(AccountErrorDTO.class).toString());
-//                    TODO: Improve Error Handling. Possibly publish errorDescription and fail transaction.
-                });
+                    logger.error(exchange.getIn().getBody(ErrorDTO.class).toString());
+                })
+                .setProperty(PARTY_LOOKUP_FAILED, constant(true))
+                .process(identifierResponseProcessor);
 
         /**
          * Route when account API call was successful
          */
         from("direct:account-success")
-                .id("account-success") // TODO: Change for account status and balance
+                .id("account-success")
                 .choice()
                     .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("status"))
                         .log(LoggingLevel.INFO, "Routing to account status handler")
@@ -71,10 +77,16 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                     .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("balance"))
                         .log(LoggingLevel.INFO, "Routing to account balance handler")
                         .to("direct:account-balance-handler")
-                    .otherwise()
+                    .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("accountname"))
                         .log(LoggingLevel.INFO, "Routing to account name handler")
-                        .to("direct:account-name-handler");
+                        .to("direct:account-name-handler")
+                    .otherwise()
+                        .log(LoggingLevel.INFO, "No routing specified for this type of action.")
+                        .process(exchange -> { });
 
+        /**
+         * Account balance response handler
+         */
         from("direct:account-balance-handler")
                 .id("account-balance-handler")
                 .unmarshal().json(JsonLibrary.Jackson, AccountBalanceResponseDTO.class)
@@ -89,10 +101,9 @@ public class IdentifierLookupRoutes extends RouteBuilder {
         from("direct:account-status-handler")
                 .id("account-status-handler")
                 .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponseDTO.class)
-                .process(exchange -> {
-                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountStatusResponseDTO.class).getAccountStatus());
-//                    TODO: Publish available in Zeebe message
-                });
+                .log(LoggingLevel.INFO, "Inside account status handler")
+                .setProperty(PARTY_LOOKUP_FAILED, constant(false))
+                .process(identifierResponseProcessor);
 
         /**
          * Account name response handler
@@ -117,11 +128,20 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/${exchangeProperty."+ACCOUNT_ACTION+"}?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
-         * Main route for account status
+         * Base route for accounts
+         * TODO: Add support for multiple identifier lookup
          */
         from("direct:account-route")
                 .id("account-route")
                 .log(LoggingLevel.INFO, "Getting ${exchangeProperty."+ACCOUNT_ACTION+"} for Identifier")
+                .process(exchange -> {
+                    TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
+                    exchange.setProperty(IDENTIFIER_TYPE, channelRequest.getPayee().getPartyIdInfo().getPartyIdType().toString().toLowerCase());
+                    exchange.setProperty(IDENTIFIER, channelRequest.getPayee().getPartyIdInfo().getPartyIdentifier());
+                })
+                .to("direct:get-access-token")
+                .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
+                .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
                 .to("direct:get-account-details")
                 .log(LoggingLevel.INFO, "Completed ${exchangeProperty."+ACCOUNT_ACTION+"} ${body}")
                 .choice()

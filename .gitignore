@@ -19,3 +19,5 @@ src/main/java/org/mifos/connector/common
 
 ### VS Code ###
 .vscode/
+
+*.orig
