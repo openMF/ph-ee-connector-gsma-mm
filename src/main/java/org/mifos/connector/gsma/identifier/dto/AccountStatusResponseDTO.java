@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.identifier.dto;
 
-public class AccountStatusResponse {
+public class AccountStatusResponseDTO {
 
     public String accountStatus;
 

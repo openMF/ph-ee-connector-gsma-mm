@@ -2,7 +2,7 @@ package org.mifos.connector.gsma.identifier.dto;
 
 import java.util.List;
 
-public class AccountStatusError {
+public class AccountErrorDTO {
     public String errorCategory;
     public String errorCode;
     public String errorDescription;

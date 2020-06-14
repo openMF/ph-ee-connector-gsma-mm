@@ -7,8 +7,9 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
-import org.mifos.connector.gsma.identifier.dto.AccountStatusError;
-import org.mifos.connector.gsma.identifier.dto.AccountStatusResponse;
+import org.mifos.connector.gsma.identifier.dto.AccountErrorDTO;
+import org.mifos.connector.gsma.identifier.dto.AccountNameResponseDTO;
+import org.mifos.connector.gsma.identifier.dto.AccountStatusResponseDTO;
 import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,49 +49,74 @@ public class IdentifierLookupRoutes extends RouteBuilder {
         /**
          * Error handling route
          */
-        from("direct:account-status-error")
-                .id("account-status-error")
-                .unmarshal().json(JsonLibrary.Jackson, AccountStatusError.class)
+        from("direct:account-error")
+                .id("account-error")
+                .unmarshal().json(JsonLibrary.Jackson, AccountErrorDTO.class)
                 .process(exchange -> {
-                    exchange.setProperty(ACCOUNT_STATUS_RESPONSE, exchange.getIn().getBody(AccountStatusError.class).getErrorDescription());
-                    logger.error(exchange.getIn().getBody(AccountStatusError.class).toString());
+                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountErrorDTO.class).getErrorDescription());
+                    logger.error(exchange.getIn().getBody(AccountErrorDTO.class).toString());
 //                    TODO: Improve Error Handling. Possibly publish errorDescription and fail transaction.
                 });
 
         /**
-         * Route when account is available
+         * Route when account API call was successful
          */
-        from("direct:account-status-success")
-                .id("account-status-success")
-                .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponse.class)
+        from("direct:account-success")
+                .id("account-success") // TODO: Change for account status and balance
+                .choice()
+                    .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("status"))
+                        .log(LoggingLevel.INFO, "Routing to account status handler")
+                        .to("direct:account-status-handler")
+                    .otherwise()
+                        .log(LoggingLevel.INFO, "Routing to account name handler")
+                        .to("direct:account-name-handler");
+
+        /**
+         * Account status response handler
+         */
+        from("direct:account-status-handler")
+                .id("account-status-handler")
+                .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponseDTO.class)
                 .process(exchange -> {
-                    exchange.setProperty(ACCOUNT_STATUS_RESPONSE, exchange.getIn().getBody(AccountStatusResponse.class).getAccountStatus());
+                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountStatusResponseDTO.class).getAccountStatus());
 //                    TODO: Publish available in Zeebe message
                 });
 
         /**
-         * Route to call GSMA API
+         * Account name response handler
          */
-        from("direct:get-account-status")
-                .id("get-account-status")
+        from("direct:account-name-handler")
+                .id("account-name-handler")
+                .unmarshal().json(JsonLibrary.Jackson, AccountNameResponseDTO.class)
+                .process(exchange -> {
+                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountNameResponseDTO.class).getName().getFullName());
+//                    TODO: Add extra processing as per use case
+                });
+
+        /**
+         * Route to call GSMA account status API
+         */
+        from("direct:get-account-details")
+                .id("get-account-details")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/status?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/${exchangeProperty."+ACCOUNT_ACTION+"}?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Main route for account status
          */
-        from("direct:account-status")
-                .id("account-status")
-                .log(LoggingLevel.INFO, "Getting account status for Identifier")
-                .to("direct:get-account-status")
-                .log(LoggingLevel.INFO, "Completed Account Status call ${body}")
+        from("direct:account-route")
+                .id("account-route")
+                .log(LoggingLevel.INFO, "Getting ${exchangeProperty."+ACCOUNT_ACTION+"} for Identifier")
+                .to("direct:get-account-details")
+                .log(LoggingLevel.INFO, "Completed ${exchangeProperty."+ACCOUNT_ACTION+"} ${body}")
                 .choice()
                     .when(header("CamelHttpResponseCode").isEqualTo("200"))
-                        .to("direct:account-status-success")
+                        .to("direct:account-success")
                     .otherwise()
-                        .to("direct:account-status-error");
+                        .to("direct:account-error");
+
     }
 }

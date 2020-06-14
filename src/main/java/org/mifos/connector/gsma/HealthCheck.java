@@ -49,16 +49,17 @@ public class HealthCheck extends RouteBuilder {
                     zeebeProcessStarter.startZeebeWorkflow("sampleProcess");
                 });
 
-        from("rest:POST:/status")
+        from("rest:POST:/account/{accountAction}")
                 .unmarshal().json(JsonLibrary.Jackson, AccountStatusRequest.class)
                 .process(exchange -> {
                     exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getBody(AccountStatusRequest.class).getIdentifierType());
                     exchange.setProperty(IDENTIFIER, exchange.getIn().getBody(AccountStatusRequest.class).getIdentifier());
+                    exchange.setProperty(ACCOUNT_ACTION, exchange.getIn().getHeader("accountAction"));
                 })
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
-                .to("direct:account-status")
-                .setBody(exchange -> exchange.getProperty(ACCOUNT_STATUS_RESPONSE, String.class));
+                .to("direct:account-route")
+                .setBody(exchange -> exchange.getProperty(ACCOUNT_RESPONSE, String.class));
     }
 }
