@@ -7,6 +7,7 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
+import org.mifos.connector.gsma.identifier.dto.AccountBalanceResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountErrorDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountNameResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountStatusResponseDTO;
@@ -67,9 +68,20 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                     .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("status"))
                         .log(LoggingLevel.INFO, "Routing to account status handler")
                         .to("direct:account-status-handler")
+                    .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("balance"))
+                        .log(LoggingLevel.INFO, "Routing to account balance handler")
+                        .to("direct:account-balance-handler")
                     .otherwise()
                         .log(LoggingLevel.INFO, "Routing to account name handler")
                         .to("direct:account-name-handler");
+
+        from("direct:account-balance-handler")
+                .id("account-balance-handler")
+                .unmarshal().json(JsonLibrary.Jackson, AccountBalanceResponseDTO.class)
+                .process(exchange -> {
+                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountBalanceResponseDTO.class).getCurrentBalance());
+//                    TODO: Add extra processing as per use case
+                });
 
         /**
          * Account status response handler
