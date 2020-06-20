@@ -6,8 +6,6 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
-import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
-import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
 import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,16 +52,11 @@ public class TransferRoutes extends RouteBuilder {
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
-                .process(exchange -> {
-                    GSMATransaction channelRequest = objectMapper.readValue(exchange.getProperty(TRANSACTION_BODY, String.class), GSMATransaction.class);
-                    logger.info("Channel transaction body: " + exchange.getProperty(TRANSACTION_BODY, String.class));
-                    exchange.getIn().setBody(channelRequest);
-                })
                 .to("direct:commit-transaction")
-                .log(LoggingLevel.INFO, "Intermediate state: ${body}")
+                .log(LoggingLevel.INFO, "Transaction API response: ${body}")
                 .choice()
                     .when(header("CamelHttpResponseCode").isEqualTo("202"))
-                        .log(LoggingLevel.INFO, "Request was successful. Sending to handler")
+                        .log(LoggingLevel.INFO, "Transaction request successful.")
                         .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
                         .process(exchange -> {
                             correlationIDStore.addMapping(exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId(),
@@ -72,12 +65,8 @@ public class TransferRoutes extends RouteBuilder {
                         })
                     .otherwise()
                         .log(LoggingLevel.ERROR, "Transaction request unsuccessful")
-//                        .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
                         .process(exchange -> {
-//                            exchange.setProperty(TRANSACTION_RESPONSE, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription()); // To be removed
-                            exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORELATION_ID)); // TODO: Improve this, possible take out error handler
-                            exchange.setProperty(ERROR_INFORMATION, exchange.getIn(String.class));
-//                            exchange.setProperty(TRANSACTION_FAILED, constant(true));
+                            exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORELATION_ID)); // TODO: Improve this
                         })
                         .setProperty(TRANSACTION_FAILED, constant(true))
                         .process(transferResponseProcessor);
@@ -92,8 +81,8 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
                 .setHeader("X-Callback-URL", constant("http://4331aa8ed91b.ngrok.io/transfer/callback")) // TODO: Remove hard coded value
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+CORELATION_ID+"}"))
-                .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY, GSMATransaction.class))
-                .marshal().json(JsonLibrary.Jackson)
+                .setHeader("Content-Type", constant("application/json"))
+                .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY))
                 .toD(BaseURL + "/transactions" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
@@ -109,23 +98,10 @@ public class TransferRoutes extends RouteBuilder {
                 .choice()
                     .when(exchange -> exchange.getIn().getBody(RequestStateDTO.class).getStatus().equals("completed"))
                         .setProperty(TRANSACTION_FAILED, constant(false))
-//                        .process(exchange -> {
-//                            exchange.setProperty(TRANSACTION_FAILED, constant(false));
-//                        })
                     .otherwise()
-                        .setProperty(TRANSACTION_FAILED, constant(false))
-                        .process(exchange -> {
-                            exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(RequestStateDTO.class).toString());
-//                            exchange.setProperty(TRANSACTION_FAILED, constant(true));
-                        })
+                        .setProperty(TRANSACTION_FAILED, constant(true))
                 .end()
                 .process(transferResponseProcessor);
-//                .process(exchange -> {
-//                    String serverUUID = exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId();
-//                    logger.info("Client corelationId is: " + correlationIDStore
-//                            .getClientCorrelation(serverUUID));
-//                    logger.info("Request status is: " + exchange.getIn().getBody(RequestStateDTO.class).getStatus());
-//                });
 
     }
 }

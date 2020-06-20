@@ -45,28 +45,6 @@ public class HealthCheck extends RouteBuilder {
                     logger.info("Access token: " + accessTokenStore.getAccessToken());
                 });
 
-        from("rest:POST:/deploy")
-                .to("direct:test-bpmn")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200));
-
-        from("direct:test-bpmn")
-                .id("test-bpmn")
-                .process(exchange -> {
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("transactionId", generateUUID());
-                    variables.put("channelBody", exchange.getIn().getBody(String.class));
-//                    zeebeProcessStarter.startZeebeWorkflow("gsma_p2p_base", variables);
-                    zeebeProcessStarter.startZeebeWorkflow("transactionTester", variables);
-                });
-
-        from("rest:POST:/zeebe/transfer")
-                .process(exchange -> {
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("transactionId", generateUUID());
-                    variables.put("channelBody", exchange.getIn().getBody(String.class));
-                    zeebeProcessStarter.startZeebeWorkflow("gsma_p2p_base", variables);
-                });
-
         from("rest:POST:/account/{accountAction}")
                 .process(exchange -> {
                     exchange.setProperty(CORELATION_ID, generateUUID());
@@ -82,15 +60,29 @@ public class HealthCheck extends RouteBuilder {
                     exchange.setProperty(TRANSACTION_BODY, exchange.getIn().getBody(String.class));
                 })
                 .to("direct:transfer-route");
-//                .unmarshal().json(JsonLibrary.Jackson, GSMATransaction.class)
-//                .process(exchange -> exchange.setProperty(TRANSACTION_BODY, exchange.getIn().getBody(GSMATransaction.class)))
-//                .to("direct:get-access-token")
-//                .process(exchange -> {
-//                    exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken());
-//                    exchange.setProperty(CORELATION_ID, generateUUID());
-//                })
-//                .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
-//                .to("direct:transfer-route");
+
+        from("rest:POST:/zeebe/test/deploy")
+                .process(exchange -> {
+                    Map<String, Object> variables = new HashMap<>();
+                    zeebeProcessStarter.startZeebeWorkflow("sampleProcess", variables);
+                })
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200));
+
+        from("rest:POST:/zeebe/test/transaction")
+                .process(exchange -> {
+                    Map<String, Object> variables = new HashMap<>();
+                    variables.put("transactionId", generateUUID());
+                    variables.put("channelBody", exchange.getIn().getBody(String.class));
+                    zeebeProcessStarter.startZeebeWorkflow("transactionTester", variables);
+                });
+
+        from("rest:POST:/zeebe/transfer")
+                .process(exchange -> {
+                    Map<String, Object> variables = new HashMap<>();
+                    variables.put("transactionId", generateUUID());
+                    variables.put("channelBody", exchange.getIn().getBody(String.class));
+                    zeebeProcessStarter.startZeebeWorkflow("gsma_p2p_base", variables);
+                });
     }
 
     public static String generateUUID() {

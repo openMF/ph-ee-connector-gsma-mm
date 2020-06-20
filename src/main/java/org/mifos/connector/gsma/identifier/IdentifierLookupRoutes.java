@@ -11,7 +11,6 @@ import org.mifos.connector.gsma.identifier.dto.AccountBalanceResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountNameResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.AccountStatusResponseDTO;
-import org.mifos.connector.gsma.transfer.dto.AccountStatus;
 import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
 import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
@@ -62,7 +61,6 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .process(exchange -> {
                     exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription()); // To be removed
                     logger.error(exchange.getIn().getBody(ErrorDTO.class).toString());
-//                    exchange.setProperty(PARTY_LOOKUP_FAILED, constant(true));
                 })
                 .setProperty(PARTY_LOOKUP_FAILED, constant(true))
                 .process(identifierResponseProcessor);
@@ -106,11 +104,6 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .id("account-status-handler")
                 .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponseDTO.class)
                 .log(LoggingLevel.INFO, "Inside account status handler")
-//                .process(exchange -> {
-//                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(AccountStatusResponseDTO.class).getAccountStatus()); // To be removed
-//                    logger.info(exchange.getIn().getBody(String.class));
-////                    exchange.setProperty(PARTY_LOOKUP_FAILED, constant(false));
-//                })
                 .setProperty(PARTY_LOOKUP_FAILED, constant(false))
                 .process(identifierResponseProcessor);
 

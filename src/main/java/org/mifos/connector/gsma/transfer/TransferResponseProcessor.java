@@ -3,6 +3,8 @@ package org.mifos.connector.gsma.transfer;
 import io.zeebe.client.ZeebeClient;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ public class TransferResponseProcessor implements Processor {
     @Autowired
     private ZeebeClient zeebeClient;
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Override
     public void process(Exchange exchange) {
 
@@ -31,11 +35,13 @@ public class TransferResponseProcessor implements Processor {
 
         if (hasTransferFailed != null && (boolean)hasTransferFailed) {
             variables.put(TRANSACTION_FAILED, true);
-            variables.put(ERROR_INFORMATION, exchange.getProperty(ERROR_INFORMATION, String.class));
+            variables.put(ERROR_INFORMATION, exchange.getIn().getBody(String.class));
         } else {
             variables.put(TRANSFER_STATE, "COMMITTED");
             variables.put(TRANSACTION_FAILED, false);
         }
+
+        logger.info("Publishing transaction message variables: " + variables);
 
         zeebeClient.newPublishMessageCommand()
                 .messageName(TRANSFER_RESPONSE)

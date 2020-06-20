@@ -39,7 +39,7 @@ public class IdentifierResponseProcessor implements Processor {
             variables.put(PARTY_LOOKUP_FAILED, false);
         }
 
-        logger.info("Publishing account status message: " + variables);
+        logger.info("Publishing account status message variables: " + variables);
 
         zeebeClient.newPublishMessageCommand()
                 .messageName(ACCOUNT_STATUS)
