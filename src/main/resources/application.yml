@@ -26,5 +26,8 @@ gsma:
     host: https://sandbox.mobilemoneyapi.io/v1/oauth/accesstoken
     client-key: bBvcGtIhyfAPNTMwuvACLyVrzcaTsyXR
     client-secret: PAL6ekftxxg02O58
+  api:
+    host: https://sandbox.mobilemoneyapi.io/oauth/simulator/v1.1/mm
+    account: /accounts
 
 dfspids: "DFSPID"

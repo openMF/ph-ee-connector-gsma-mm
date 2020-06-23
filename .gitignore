@@ -1,5 +1,6 @@
 ### Build files ###
 target/
+src/main/java/org/mifos/connector/common
 
 ### STS ###
 .apt_generated
