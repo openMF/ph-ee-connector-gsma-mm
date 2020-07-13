@@ -42,16 +42,15 @@ public class ZeebeProcessStarter {
         }
     }
 
-    public void startZeebeWorkflow(String workflowId) {
-        // TODO: Uncomment and transform Zeebe variables as per our usecases
-//        Map<String, Object> variables = new HashMap<>();
-//        variables.put(CamelProperties.ORIGIN_DATE, Instant.now().toEpochMilli());
-//        variablesLambda.accept(variables);
+    public void startZeebeWorkflow(String workflowId, Map<String, Object> extraVariables) {
+        Map<String, Object> variables = new HashMap<>();
+        variables.putAll(extraVariables);
+        // TODO: Add extra variables if required. Such as origin date.
 
         zeebeClient.newCreateInstanceCommand()
                 .bpmnProcessId(workflowId)
                 .latestVersion()
-//                .variables(variables)
+                .variables(variables)
                 .send()
                 .join();
 
