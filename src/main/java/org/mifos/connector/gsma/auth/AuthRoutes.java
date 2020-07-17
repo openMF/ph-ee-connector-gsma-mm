@@ -7,7 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
-import org.mifos.connector.gsma.auth.dto.ErrorDTO;
+import org.mifos.connector.gsma.auth.dto.AuthErrorDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +43,9 @@ public class AuthRoutes extends RouteBuilder {
          */
         from("direct:access-token-error")
                 .id("access-token-error")
-                .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
+                .unmarshal().json(JsonLibrary.Jackson, AuthErrorDTO.class)
                 .process(exchange -> {
-                    logger.error(exchange.getIn().getBody(ErrorDTO.class).getErrorMessage());
+                    logger.error(exchange.getIn().getBody(AuthErrorDTO.class).getErrorMessage());
                     // TODO: Improve Error Handling
                 });
 

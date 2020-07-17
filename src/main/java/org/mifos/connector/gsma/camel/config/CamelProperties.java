@@ -15,5 +15,13 @@ public class CamelProperties {
     public static final String ACCESS_TOKEN = "accessToken";
     public static final String IDENTIFIER_TYPE = "identifier_type";
     public static final String IDENTIFIER = "identifier";
-    public static final String ACCOUNT_STATUS_RESPONSE = "accountStatusResponse";
+    public static final String ACCOUNT_RESPONSE = "accountResponse";
+    public static final String ACCOUNT_ACTION = "actionAction";
+    public static final String CORELATION_ID = "corelationId";
+    public static final String TRANSACTION_BODY = "transactionBody";
+    public static final String TRANSACTION_RESPONSE = "transactionResponse";
+    public static final String ERROR_INFORMATION = "errorInformation";
+    public static final String TRANSACTION_ID = "transactionId";
+    public static final String CHANNEL_REQUEST = "channelRequest";
+    public static final String IS_RTP_REQUEST = "isRtpRequest";
 }

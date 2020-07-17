@@ -1,5 +1,6 @@
 camel:
-  server-port: 5000
+  server-port: ${PORT:5000}
+  host: "http://538c368b9485.ngrok.io"
   springboot:
     main-run-controller: true
   dataformat:
@@ -15,6 +16,7 @@ zeebe:
     max-execution-threads: 100
     number-of-workers: 14
     evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
+    ttl: 30000
   broker:
     contactpoint: "4ae8d42c-5f02-4e18-b4d4-f4d3d92fc824.zeebe.camunda.io:443"
     audience: "4ae8d42c-5f02-4e18-b4d4-f4d3d92fc824.zeebe.camunda.io"
