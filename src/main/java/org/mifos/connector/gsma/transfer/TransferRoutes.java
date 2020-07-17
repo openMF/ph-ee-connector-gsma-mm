@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,6 +28,9 @@ public class TransferRoutes extends RouteBuilder {
     private TransferResponseProcessor transferResponseProcessor;
 
     @Autowired
+    private TransformRequestDataProcessor transformRequestDataProcessor;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
@@ -34,6 +38,9 @@ public class TransferRoutes extends RouteBuilder {
 
     @Value("${gsma.api.host}")
     private String BaseURL;
+
+    @Value("${camel.host}")
+    private String HostURL;
 
     @Autowired
     private CorrelationIDStore correlationIDStore;
@@ -51,17 +58,19 @@ public class TransferRoutes extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Transfer route started")
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
-                .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
+                .log(LoggingLevel.INFO, "Got access token, moving on to transform data")
+                .process(transformRequestDataProcessor)
+                .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:commit-transaction")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
                 .choice()
                     .when(header("CamelHttpResponseCode").isEqualTo("202"))
-                        .log(LoggingLevel.INFO, "Transaction request successful.")
+                        .log(LoggingLevel.INFO, "Transaction request successful")
                         .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
                         .process(exchange -> {
                             correlationIDStore.addMapping(exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId(),
                                     exchange.getProperty(CORELATION_ID, String.class));
-                            logger.info("Saved correlationId mapping.");
+                            logger.info("Saved correlationId mapping");
                         })
                     .otherwise()
                         .log(LoggingLevel.ERROR, "Transaction request unsuccessful")
@@ -79,10 +88,11 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .setHeader("X-Callback-URL", constant("http://4331aa8ed91b.ngrok.io/transfer/callback")) // TODO: Remove hard coded value
+                .setHeader("X-Callback-URL", simple(HostURL + "/transfer/callback")) // TODO: Remove hard coded value
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+CORELATION_ID+"}"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY))
+                .marshal().json(JsonLibrary.Jackson)
                 .toD(BaseURL + "/transactions" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**

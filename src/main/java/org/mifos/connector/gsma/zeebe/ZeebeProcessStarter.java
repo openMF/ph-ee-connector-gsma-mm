@@ -49,7 +49,7 @@ public class ZeebeProcessStarter {
 
         zeebeClient.newCreateInstanceCommand()
                 .bpmnProcessId(workflowId)
-                .latestVersion()
+                .latestVersion() // .version(1)
                 .variables(variables)
                 .send()
                 .join();

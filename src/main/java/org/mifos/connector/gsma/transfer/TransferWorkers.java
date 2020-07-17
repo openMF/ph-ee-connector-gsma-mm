@@ -14,8 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Map;
 
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_BODY;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_RETRY_COUNT;
 
 @Component
@@ -47,7 +46,7 @@ public class TransferWorkers {
 
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
-                    exchange.setProperty(TRANSACTION_BODY, variables.get("channelBody"));
+                    exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
 
                     producerTemplate.send("direct:transfer-route", exchange);
 

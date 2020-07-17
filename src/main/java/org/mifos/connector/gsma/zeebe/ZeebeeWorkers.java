@@ -1,8 +1,6 @@
 package org.mifos.connector.gsma.zeebe;
 
 import io.zeebe.client.ZeebeClient;
-import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Map;
-
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_BODY;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_RETRY_COUNT;
 
 
 @Component

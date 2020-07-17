@@ -35,58 +35,12 @@ public class HealthCheck extends RouteBuilder {
     public void configure() throws Exception {
         from("rest:GET:/")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant("All Good"));
+                .setBody(constant("GET Good"));
 
-        from("rest:GET:/accesstoken")
-                .to("direct:get-access-token")
+        from("rest:POST:/")
+                .log(LoggingLevel.INFO, "POST Body: ${body}")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(exchange -> accessTokenStore.getAccessToken())
-                .process(exchange -> {
-                    logger.info("Access token: " + accessTokenStore.getAccessToken());
-                });
+                .setBody(constant("POST Good"));
 
-        from("rest:POST:/account/{accountAction}")
-                .process(exchange -> {
-                    exchange.setProperty(CORELATION_ID, generateUUID());
-                    exchange.setProperty(TRANSACTION_BODY, exchange.getIn().getBody(String.class));
-                    exchange.setProperty(ACCOUNT_ACTION, exchange.getIn().getHeader("accountAction")); // Get's hardcoded in Zeebe Worker
-                })
-                .to("direct:account-route")
-                .setBody(exchange -> exchange.getProperty(ACCOUNT_RESPONSE, String.class));
-
-        from("rest:POST:/transfer")
-                .process(exchange -> {
-                    exchange.setProperty(CORELATION_ID, generateUUID());
-                    exchange.setProperty(TRANSACTION_BODY, exchange.getIn().getBody(String.class));
-                })
-                .to("direct:transfer-route");
-
-        from("rest:POST:/zeebe/test/deploy")
-                .process(exchange -> {
-                    Map<String, Object> variables = new HashMap<>();
-                    zeebeProcessStarter.startZeebeWorkflow("sampleProcess", variables);
-                })
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200));
-
-        from("rest:POST:/zeebe/test/transaction")
-                .process(exchange -> {
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("transactionId", generateUUID());
-                    variables.put("channelBody", exchange.getIn().getBody(String.class));
-                    zeebeProcessStarter.startZeebeWorkflow("transactionTester", variables);
-                });
-
-        from("rest:POST:/zeebe/transfer")
-                .process(exchange -> {
-                    Map<String, Object> variables = new HashMap<>();
-                    variables.put("transactionId", generateUUID());
-                    variables.put("channelBody", exchange.getIn().getBody(String.class));
-                    zeebeProcessStarter.startZeebeWorkflow("gsma_p2p_base", variables);
-                });
     }
-
-    public static String generateUUID() {
-        return UUID.randomUUID().toString();
-    }
-
 }

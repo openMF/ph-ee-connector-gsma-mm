@@ -47,7 +47,7 @@ public class IdentifierLookupWorkers {
 
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
-                    exchange.setProperty(TRANSACTION_BODY, variables.get("channelBody"));
+                    exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(ACCOUNT_ACTION, "status");
                     producerTemplate.send("direct:account-route", exchange);
 

@@ -6,6 +6,7 @@ import org.apache.camel.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -24,6 +25,9 @@ public class IdentifierResponseProcessor implements Processor {
     private ZeebeClient zeebeClient;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Value("${zeebe.client.ttl}")
+    private int timeToLive;
 
     @Override
     public void process(Exchange exchange) {
@@ -44,7 +48,7 @@ public class IdentifierResponseProcessor implements Processor {
         zeebeClient.newPublishMessageCommand()
                 .messageName(ACCOUNT_STATUS)
                 .correlationKey(exchange.getProperty(CORELATION_ID, String.class))
-                .timeToLive(Duration.ofMillis(30000))
+                .timeToLive(Duration.ofMillis(timeToLive))
                 .variables(variables)
                 .send()
                 .join();

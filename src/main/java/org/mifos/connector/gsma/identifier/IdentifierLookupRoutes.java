@@ -6,6 +6,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.identifier.dto.AccountBalanceResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
@@ -59,7 +60,6 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .id("account-error")
                 .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
                 .process(exchange -> {
-                    exchange.setProperty(ACCOUNT_RESPONSE, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription()); // To be removed
                     logger.error(exchange.getIn().getBody(ErrorDTO.class).toString());
                 })
                 .setProperty(PARTY_LOOKUP_FAILED, constant(true))
@@ -82,9 +82,7 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                         .to("direct:account-name-handler")
                     .otherwise()
                         .log(LoggingLevel.INFO, "No routing specified for this type of action.")
-                        .process(exchange -> {
-//                            TODO: Add logic for else cases
-                        });
+                        .process(exchange -> { });
 
         /**
          * Account balance response handler
@@ -137,9 +135,9 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .id("account-route")
                 .log(LoggingLevel.INFO, "Getting ${exchangeProperty."+ACCOUNT_ACTION+"} for Identifier")
                 .process(exchange -> {
-                    GSMATransaction channelRequest = objectMapper.readValue(exchange.getProperty(TRANSACTION_BODY, String.class), GSMATransaction.class);
-                    exchange.setProperty(IDENTIFIER_TYPE, channelRequest.getCreditParty()[0].getKey());
-                    exchange.setProperty(IDENTIFIER, channelRequest.getCreditParty()[0].getValue());
+                    TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
+                    exchange.setProperty(IDENTIFIER_TYPE, channelRequest.getPayee().getPartyIdInfo().getPartyIdType().toString().toLowerCase());
+                    exchange.setProperty(IDENTIFIER, channelRequest.getPayee().getPartyIdInfo().getPartyIdentifier());
                 })
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
