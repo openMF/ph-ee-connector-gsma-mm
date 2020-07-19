@@ -41,5 +41,25 @@ public class HealthCheck extends RouteBuilder {
                 .log(LoggingLevel.INFO, "POST Body: ${body}")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
                 .setBody(constant("All Post Good"));
+
+        from("rest:POST:/transfer")
+                .process(exchange -> {
+                    exchange.setProperty(CORELATION_ID, UUID.randomUUID().toString());
+                    exchange.setProperty(CHANNEL_REQUEST, exchange.getIn().getBody(String.class));
+                    exchange.setProperty(IS_RTP_REQUEST, false);
+                    logger.info("Client Correlation ID: " + exchange.getProperty(CORELATION_ID, String.class));
+                })
+                .to("direct:transfer-route");
+
+        from("rest:GET:/transfer/{" + TRANSACTION_ID + "}")
+                .process(exchange -> {
+                    exchange.setProperty(CORELATION_ID, exchange.getIn().getHeader(TRANSACTION_ID, String.class));
+                })
+                .to("direct:transaction-state")
+                .process(exchange -> {
+                    logger.info("Status Available: " + exchange.getProperty(STATUS_AVAILABLE, Boolean.class));
+                    if (exchange.getProperty(STATUS_AVAILABLE, Boolean.class))
+                        logger.info("Status is: " + exchange.getProperty(TRANSACTION_STATUS, String.class));
+                });
     }
 }
