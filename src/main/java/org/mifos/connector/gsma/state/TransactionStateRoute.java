@@ -22,16 +22,9 @@ import java.util.stream.Stream;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
 
 @Component
 public class TransactionStateRoute extends RouteBuilder {
-
-    @Autowired
-    private ZeebeProcessStarter zeebeProcessStarter;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private AccessTokenStore accessTokenStore;
@@ -92,6 +85,7 @@ public class TransactionStateRoute extends RouteBuilder {
 
         /**
          * Error route handler
+         * TODO: Improve based on use cases
          */
         from("direct:transaction-state-error")
                 .id("transaction-state-error")

@@ -1,4 +1,4 @@
-package org.mifos.connector.gsma.state;
+package org.mifos.connector.gsma.response;
 
 import io.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
@@ -9,17 +9,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.IS_RTP_REQUEST;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PAYEE_LOOKUP_RETRY_COUNT;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_STATUS;
 
-@Component
-public class TransactionStateWorker {
+public class TransactionResponseWorker {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -39,7 +36,7 @@ public class TransactionStateWorker {
     public void setupWorkers() {
 
         zeebeClient.newWorker()
-                .jobType("transactionState")
+                .jobType("transactionResponse")
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
@@ -47,20 +44,21 @@ public class TransactionStateWorker {
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
 
-                    producerTemplate.send("direct:transaction-state", exchange);
+                    producerTemplate.send("direct:transaction-response", exchange);
 
-                    variables.put(STATUS_AVAILABLE, exchange.getProperty(STATUS_AVAILABLE, Boolean.class));
-                    if (exchange.getProperty(STATUS_AVAILABLE, Boolean.class))
-                        variables.put(TRANSACTION_STATUS, exchange.getProperty(TRANSACTION_STATUS, String.class));
+                    variables.put(TRANSACTION_OBJECT_AVAILABLE, exchange.getProperty(TRANSACTION_OBJECT_AVAILABLE, Boolean.class));
+                    if (exchange.getProperty(TRANSACTION_OBJECT_AVAILABLE, Boolean.class))
+                        variables.put(TRANSACTION_OBJECT, exchange.getProperty(TRANSACTION_OBJECT, String.class));
 
                     client.newCompleteCommand(job.getKey())
                             .variables(variables)
                             .send()
                             .join();
                 })
-                .name("transactionState")
+                .name("transactionResponse")
                 .maxJobsActive(workerMaxJobs)
                 .open();
 
     }
+
 }
