@@ -30,4 +30,5 @@ public class CamelProperties {
     public static final String TRANSACTION_LINK = "transactionLink";
     public static final String TRANSACTION_OBJECT = "transactionObject";
     public static final String TRANSACTION_OBJECT_AVAILABLE = "transactionObjectAvailable";
+    public static final String IS_API_CALL = "isAPICall";
 }

@@ -1,4 +1,4 @@
-package org.mifos.connector.gsma.identifier;
+package org.mifos.connector.gsma.account;
 
 import io.zeebe.client.ZeebeClient;
 import org.apache.camel.Exchange;
@@ -19,7 +19,7 @@ import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PARTY_LOOK
 import static org.mifos.connector.gsma.zeebe.ZeebeMessages.ACCOUNT_STATUS;
 
 @Component
-public class IdentifierResponseProcessor implements Processor {
+public class AccountResponseProcessor implements Processor {
 
     @Autowired
     private ZeebeClient zeebeClient;
