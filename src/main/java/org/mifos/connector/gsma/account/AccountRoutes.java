@@ -163,7 +163,7 @@ public class AccountRoutes extends RouteBuilder {
 
 
         from("rest:GET:/account/name/{identifier_type}/{identifier}")
-                .log(LoggingLevel.INFO, "Getting Account Status")
+                .log(LoggingLevel.INFO, "Getting Account Name")
                 .process(exchange -> {
                     exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
                     exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
@@ -174,7 +174,7 @@ public class AccountRoutes extends RouteBuilder {
 
 
         from("rest:GET:/account/balance/{identifier_type}/{identifier}")
-                .log(LoggingLevel.INFO, "Getting Account Status")
+                .log(LoggingLevel.INFO, "Getting Account Balance")
                 .process(exchange -> {
                     exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
                     exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
@@ -185,7 +185,7 @@ public class AccountRoutes extends RouteBuilder {
 
 
         from("rest:GET:/account/statements/{identifier_type}/{identifier}")
-                .log(LoggingLevel.INFO, "Getting Account Status")
+                .log(LoggingLevel.INFO, "Getting Account Statements")
                 .process(exchange -> {
                     exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
                     exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
@@ -196,7 +196,7 @@ public class AccountRoutes extends RouteBuilder {
 
 
         from("rest:GET:/account/transactions/{identifier_type}/{identifier}")
-                .log(LoggingLevel.INFO, "Getting Account Status")
+                .log(LoggingLevel.INFO, "Getting Account Transactions")
                 .process(exchange -> {
                     exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
                     exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
