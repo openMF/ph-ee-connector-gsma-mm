@@ -1,6 +1,5 @@
 package org.mifos.connector.gsma.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -8,7 +7,6 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
 import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
-import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.CORRELATION_ID;
 
 @Component
 public class TransactionStateRoute extends RouteBuilder {
@@ -50,10 +48,10 @@ public class TransactionStateRoute extends RouteBuilder {
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on.")
                 .choice()
-                .when(exchange -> correlationIDStore.isClientCorrelationPresent(exchange.getProperty(CORELATION_ID, String.class)))
+                .when(exchange -> correlationIDStore.isClientCorrelationPresent(exchange.getProperty(CORRELATION_ID, String.class)))
                     .log(LoggingLevel.INFO, "Getting Server Correlation ID")
                     .process(exchange -> {
-                        Stream<String> serverCorrelations = correlationIDStore.getServerCorrelations(exchange.getProperty(CORELATION_ID, String.class));
+                        Stream<String> serverCorrelations = correlationIDStore.getServerCorrelations(exchange.getProperty(CORRELATION_ID, String.class));
                         String serverCorrelationID = serverCorrelations.findFirst().get();
                         exchange.setProperty(SERVER_CORRELATION, serverCorrelationID);
                         logger.info("Server CorrelationID: " + serverCorrelationID);

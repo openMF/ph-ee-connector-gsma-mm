@@ -15,8 +15,6 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.IS_RTP_REQUEST;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PAYEE_LOOKUP_RETRY_COUNT;
 
 @Component
 public class TransactionStateWorker {
@@ -45,7 +43,7 @@ public class TransactionStateWorker {
                     Map<String, Object> variables = job.getVariablesAsMap();
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
 
                     producerTemplate.send("direct:transaction-state", exchange);
 

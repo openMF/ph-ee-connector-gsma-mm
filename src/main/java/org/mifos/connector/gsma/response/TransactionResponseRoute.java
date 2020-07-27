@@ -17,7 +17,6 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Stream;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 
@@ -82,7 +81,7 @@ public class TransactionResponseRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + "/responses" + "/${exchangeProperty."+CORELATION_ID+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + "/responses" + "/${exchangeProperty."+ CORRELATION_ID +"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Route to get Transaction Object

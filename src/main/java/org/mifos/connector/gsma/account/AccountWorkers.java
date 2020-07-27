@@ -51,7 +51,7 @@ public class AccountWorkers {
                     variables.put(PAYEE_LOOKUP_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(PAYEE_LOOKUP_RETRY_COUNT, -1));
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(ACCOUNT_ACTION, "status");
                     exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));

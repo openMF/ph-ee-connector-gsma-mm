@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.net.InetAddress;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -69,13 +68,13 @@ public class TransferRoutes extends RouteBuilder {
                         .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
                         .process(exchange -> {
                             correlationIDStore.addMapping(exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId(),
-                                    exchange.getProperty(CORELATION_ID, String.class));
+                                    exchange.getProperty(CORRELATION_ID, String.class));
                             logger.info("Saved correlationId mapping");
                         })
                     .otherwise()
                         .log(LoggingLevel.ERROR, "Transaction request unsuccessful")
                         .process(exchange -> {
-                            exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORELATION_ID)); // TODO: Improve this
+                            exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORRELATION_ID)); // TODO: Improve this
                         })
                         .setProperty(TRANSACTION_FAILED, constant(true))
                         .process(transferResponseProcessor);
@@ -89,11 +88,12 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
                 .setHeader("X-Callback-URL", simple(HostURL + "/transfer/callback")) // TODO: Remove hard coded value
-                .setHeader("X-CorrelationID", simple("${exchangeProperty."+CORELATION_ID+"}"))
+                .setHeader("X-CorrelationID", simple("${exchangeProperty."+ CORRELATION_ID +"}"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY))
                 .marshal().json(JsonLibrary.Jackson)
-                .toD(BaseURL + "/transactions" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
+                .toD(BaseURL + "/transactions/type" + "/${exchangeProperty."+TRANSACTION_TYPE+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Callback for transaction

@@ -39,15 +39,11 @@ public class TransformRequestDataProcessor implements Processor {
         String amount = channelRequest.getAmount().getAmount();
         String currency = channelRequest.getAmount().getCurrency();
 
-        String type = channelRequest.getTransactionType().getScenario().toString().toLowerCase();
-
-        if (exchange.getProperty(IS_RTP_REQUEST, Boolean.class)) {
-            type = "merchantpay";
-        }
+        if (exchange.getProperty(GSMA_AUTHORIZATION_CODE, String.class) != null)
+            gsmaTransaction.setOneTimeCode(exchange.getProperty(GSMA_AUTHORIZATION_CODE, String.class));
 
         gsmaTransaction.setAmount(amount);
         gsmaTransaction.setCurrency(currency);
-        gsmaTransaction.setType(type);
         gsmaTransaction.setCreditParty(creditParty);
         gsmaTransaction.setDebitParty(debitParty);
 

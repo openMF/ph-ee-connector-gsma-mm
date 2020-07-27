@@ -17,9 +17,9 @@ public class CamelProperties {
     public static final String IDENTIFIER = "identifier";
     public static final String ACCOUNT_RESPONSE = "accountResponse";
     public static final String ACCOUNT_ACTION = "actionAction";
-    public static final String CORELATION_ID = "corelationId";
+    public static final String CORRELATION_ID = "correlationId";
     public static final String TRANSACTION_BODY = "transactionBody";
-    public static final String TRANSACTION_RESPONSE = "transactionResponse";
+    public static final String TRANSACTION_TYPE = "transactionType";
     public static final String ERROR_INFORMATION = "errorInformation";
     public static final String TRANSACTION_ID = "transactionId";
     public static final String CHANNEL_REQUEST = "channelRequest";
@@ -31,4 +31,5 @@ public class CamelProperties {
     public static final String TRANSACTION_OBJECT = "transactionObject";
     public static final String TRANSACTION_OBJECT_AVAILABLE = "transactionObjectAvailable";
     public static final String IS_API_CALL = "isAPICall";
+    public static final String GSMA_AUTHORIZATION_CODE = "gsmaAuthorizationCode";
 }

@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.CORRELATION_ID;
 import static org.mifos.connector.gsma.camel.config.CamelProperties.ERROR_INFORMATION;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PARTY_LOOKUP_FAILED;
 import static org.mifos.connector.gsma.zeebe.ZeebeMessages.ACCOUNT_STATUS;
@@ -47,7 +47,7 @@ public class AccountResponseProcessor implements Processor {
 
         zeebeClient.newPublishMessageCommand()
                 .messageName(ACCOUNT_STATUS)
-                .correlationKey(exchange.getProperty(CORELATION_ID, String.class))
+                .correlationKey(exchange.getProperty(CORRELATION_ID, String.class))
                 .timeToLive(Duration.ofMillis(timeToLive))
                 .variables(variables)
                 .send()
