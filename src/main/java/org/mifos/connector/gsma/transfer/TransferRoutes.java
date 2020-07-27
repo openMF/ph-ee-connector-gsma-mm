@@ -27,7 +27,7 @@ public class TransferRoutes extends RouteBuilder {
     private TransferResponseProcessor transferResponseProcessor;
 
     @Autowired
-    private TransformRequestDataProcessor transformRequestDataProcessor;
+    private TransformRequestData transformRequestData;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -58,7 +58,7 @@ public class TransferRoutes extends RouteBuilder {
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on to transform data")
-                .process(transformRequestDataProcessor)
+                .process(transformRequestData)
                 .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:commit-transaction")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
@@ -87,7 +87,7 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .setHeader("X-Callback-URL", simple(HostURL + "/transfer/callback")) // TODO: Remove hard coded value
+                .setHeader("X-Callback-URL", simple(HostURL + "/transfer/callback"))
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+ CORRELATION_ID +"}"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY))

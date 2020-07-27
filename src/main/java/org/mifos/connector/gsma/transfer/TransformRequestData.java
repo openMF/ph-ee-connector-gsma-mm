@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 
 @Component
-public class TransformRequestDataProcessor implements Processor {
+public class TransformRequestData implements Processor {
 
     @Autowired
     private ObjectMapper objectMapper;

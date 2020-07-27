@@ -4,8 +4,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.gsma.account.dto.LinksDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
-import org.mifos.connector.gsma.response.dto.TransactionResponseLinkDTO;
+import org.mifos.connector.gsma.response.dto.ResponseLinkDTO;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
 import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
 import org.slf4j.Logger;
@@ -40,29 +41,26 @@ public class TransactionResponseRoute extends RouteBuilder {
         /**
          * Base route for transaction response
          */
-        from("direct:transaction-response")
-                .id("transaction-response")
+        from("direct:response-route")
+                .id("response-route")
                 .log(LoggingLevel.INFO, "Transaction Response route started")
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on.")
-                .to("direct:get-transaction-link")
+                .to("direct:get-response-link")
                 .log(LoggingLevel.INFO, "Transaction Response Link: ${body}")
                 .choice()
                     .when(header("CamelHttpResponseCode").isEqualTo("200"))
-                    .unmarshal().json(JsonLibrary.Jackson, TransactionResponseLinkDTO.class)
-                    .process(exchange -> exchange.setProperty(TRANSACTION_LINK, exchange.getIn().getBody(TransactionResponseLinkDTO.class).getLink()))
+                    .unmarshal().json(JsonLibrary.Jackson, ResponseLinkDTO.class)
+                    .process(exchange -> exchange.setProperty(RESPONSE_OBJECT_LINK, exchange.getIn().getBody(ResponseLinkDTO.class).getLink()))
                     .marshal().json(JsonLibrary.Jackson)
                     .log(LoggingLevel.INFO, "Moving to get Transaction Object")
                     .to("direct:get-link-object")
                     .log(LoggingLevel.INFO, "Transaction Link Object Response: ${body}")
                     .choice()
                         .when(header("CamelHttpResponseCode").isEqualTo("200"))
-                            .unmarshal().json(JsonLibrary.Jackson, GSMATransaction.class)
-                            .process(exchange -> {
-                                exchange.setProperty(TRANSACTION_OBJECT_AVAILABLE, true);
-                                exchange.setProperty(TRANSACTION_OBJECT, exchange.getIn().getBody(GSMATransaction.class));
-                            })
+                            .setProperty(RESPONSE_OBJECT_AVAILABLE, constant(true))
+                            .to("direct:link-object-success")
                         .otherwise()
                             .log(LoggingLevel.INFO, "Error in getting Transaction Object")
                             .to("direct:transaction-response-error")
@@ -73,10 +71,32 @@ public class TransactionResponseRoute extends RouteBuilder {
                 .endChoice();
 
         /**
+         * Route to unmarshall different objects on success
+         */
+        from("direct:link-object-success")
+                .id("link-object-success")
+                .choice()
+                .when(exchange -> exchange.getProperty(RESPONSE_OBJECT_TYPE, String.class).equals("links"))
+                    .log(LoggingLevel.INFO, "Unmarshalling Links Object")
+                    .unmarshal().json(JsonLibrary.Jackson, LinksDTO.class)
+                    .process(exchange -> {
+                        exchange.setProperty(RESPONSE_OBJECT, exchange.getIn().getBody(LinksDTO.class));
+                    })
+                .when(exchange -> exchange.getProperty(RESPONSE_OBJECT_TYPE, String.class).equals("transaction"))
+                .log(LoggingLevel.INFO, "Unmarshalling Transaction Object")
+                    .unmarshal().json(JsonLibrary.Jackson, GSMATransaction.class)
+                    .process(exchange -> {
+                        exchange.setProperty(RESPONSE_OBJECT, exchange.getIn().getBody(GSMATransaction.class));
+                    })
+                .otherwise()
+                    .log(LoggingLevel.INFO, "Unknown Response Object Type: ${exchangeProperty."+RESPONSE_OBJECT_TYPE+"}")
+                .endChoice();
+
+        /**
          * Route to get Transaction Response Link API
          */
-        from("direct:get-transaction-link")
-                .id("get-transaction-link")
+        from("direct:get-response-link")
+                .id("get-response-link")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
@@ -92,7 +112,7 @@ public class TransactionResponseRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + "/${exchangeProperty."+TRANSACTION_LINK+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + "/${exchangeProperty."+ RESPONSE_OBJECT_LINK +"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Error Handler Route for Transaction Response
@@ -101,7 +121,7 @@ public class TransactionResponseRoute extends RouteBuilder {
         from("direct:transaction-response-error")
                 .id("transaction-response-error")
                 .log(LoggingLevel.INFO, "Error in getting Transaction Response")
-                .setProperty(TRANSACTION_OBJECT_AVAILABLE, constant(false));
+                .setProperty(RESPONSE_OBJECT_AVAILABLE, constant(false));
 
 
     }

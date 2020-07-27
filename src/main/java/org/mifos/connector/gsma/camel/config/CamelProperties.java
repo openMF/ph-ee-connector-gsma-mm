@@ -27,9 +27,15 @@ public class CamelProperties {
     public static final String SERVER_CORRELATION = "isRtpRequest";
     public static final String TRANSACTION_STATUS = "transactionStatus";
     public static final String STATUS_AVAILABLE = "statusAvailable";
-    public static final String TRANSACTION_LINK = "transactionLink";
-    public static final String TRANSACTION_OBJECT = "transactionObject";
+    public static final String RESPONSE_OBJECT_LINK = "responseObjectLink";
+    public static final String RESPONSE_OBJECT = "responseObject";
+    public static final String RESPONSE_OBJECT_AVAILABLE = "responseObjectAvailable";
     public static final String TRANSACTION_OBJECT_AVAILABLE = "transactionObjectAvailable";
+    public static final String TRANSACTION_OBJECT = "transactionObject";
     public static final String IS_API_CALL = "isAPICall";
     public static final String GSMA_AUTHORIZATION_CODE = "gsmaAuthorizationCode";
+    public static final String LINKS_REQUEST_BODY = "linksRequestBody";
+    public static final String LINK_REFERENCE = "linkReference";
+    public static final String RESPONSE_OBJECT_TYPE = "responseObjectType";
+
 }

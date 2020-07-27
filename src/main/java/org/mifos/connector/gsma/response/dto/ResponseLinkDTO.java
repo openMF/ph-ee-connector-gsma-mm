@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.response.dto;
 
-public class TransactionResponseLinkDTO {
+public class ResponseLinkDTO {
 
     String link;
 
