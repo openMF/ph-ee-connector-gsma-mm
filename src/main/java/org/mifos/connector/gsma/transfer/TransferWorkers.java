@@ -42,7 +42,6 @@ public class TransferWorkers {
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
-                    variables.put(TRANSFER_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(TRANSFER_RETRY_COUNT, -1));
 
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));

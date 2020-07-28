@@ -9,6 +9,7 @@ import org.apache.camel.support.DefaultExchange;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.mifos.connector.gsma.account.dto.LinksDTO;
+import org.mifos.connector.gsma.transfer.CorrelationIDStore;
 import org.mifos.connector.gsma.transfer.dto.Party;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +19,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PAYEE_LOOKUP_RETRY_COUNT;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.LINK_CREATION_COUNT;
 
 @Component
 public class LinksWorkers {
@@ -41,6 +43,9 @@ public class LinksWorkers {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private CorrelationIDStore correlationIDStore;
+
     @PostConstruct
     public void setupWorkers() {
 
@@ -49,12 +54,15 @@ public class LinksWorkers {
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
-//                    variables.put(PAYEE_LOOKUP_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(PAYEE_LOOKUP_RETRY_COUNT, -1));
+                    variables.put(LINK_CREATION_COUNT, 1 + (Integer) variables.getOrDefault(LINK_CREATION_COUNT, -1));
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(CORRELATION_ID, UUID.randomUUID());
+                    exchange.setProperty(TRANSACTION_CORRELATION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));
+
+                    correlationIDStore.addMapping(exchange.getProperty(CORRELATION_ID, String.class), exchange.getProperty(TRANSACTION_CORRELATION_ID, String.class));
 
                     TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
                     Party party = new Party();

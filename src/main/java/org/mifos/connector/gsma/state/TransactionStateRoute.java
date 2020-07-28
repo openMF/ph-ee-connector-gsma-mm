@@ -4,8 +4,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
+import org.mifos.connector.gsma.transfer.TransferResponseProcessor;
 import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 import static org.mifos.connector.gsma.camel.config.CamelProperties.CORRELATION_ID;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
 
 @Component
 public class TransactionStateRoute extends RouteBuilder {
@@ -30,6 +33,9 @@ public class TransactionStateRoute extends RouteBuilder {
     @Autowired
     private CorrelationIDStore correlationIDStore;
 
+    @Autowired
+    private TransferResponseProcessor transferResponseProcessor;
+
     @Value("${gsma.api.host}")
     private String BaseURL;
 
@@ -37,6 +43,23 @@ public class TransactionStateRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        from("direct:transaction-state-check")
+                .id("transaction-state-check")
+                .to("direct:transaction-state")
+                .process(exchange -> {
+                    if (exchange.getProperty(STATUS_AVAILABLE, Boolean.class)) {
+                        if (exchange.getProperty(TRANSACTION_STATUS, String.class).equals("failed")) {
+                            exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(RequestStateDTO.class).getError().getErrorDescription());
+                            exchange.setProperty(TRANSACTION_FAILED, true);
+                        } else if (exchange.getProperty(TRANSACTION_STATUS, String.class).equals("completed")) {
+                            exchange.setProperty(TRANSACTION_FAILED, false);
+                        }
+                    } else {
+                        exchange.setProperty(TRANSACTION_FAILED, true);
+                    }
+                })
+                .process(transferResponseProcessor);
 
         /**
          * Base Route for Transaction State
@@ -88,8 +111,11 @@ public class TransactionStateRoute extends RouteBuilder {
         from("direct:transaction-state-error")
                 .id("transaction-state-error")
                 .log(LoggingLevel.INFO, "Error in getting Transaction State")
-                .setProperty(STATUS_AVAILABLE, constant(false));
-
+                .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
+                .process(exchange -> {
+                    exchange.setProperty(STATUS_AVAILABLE, false);
+                    exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription());
+                });
         /**
          * Success route handler
          */

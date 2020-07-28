@@ -7,6 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
+import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.account.dto.LinksDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
@@ -24,7 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.LINK_CREATE_FAILED;
 
 @Component
 public class LinksRoute extends RouteBuilder {
@@ -37,6 +38,9 @@ public class LinksRoute extends RouteBuilder {
 
     @Autowired
     private CorrelationIDStore correlationIDStore;
+
+    @Autowired
+    private LinksResponseProcessor linksResponseProcessor;
 
     @Value("${gsma.api.host}")
     private String BaseURL;
@@ -74,6 +78,12 @@ public class LinksRoute extends RouteBuilder {
                     })
                 .otherwise()
                     .log(LoggingLevel.ERROR, "Link request unsuccessful")
+                    .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
+                    .process(exchange -> {
+                        exchange.setProperty(LINK_CREATE_FAILED, true);
+                        exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription());
+                    })
+                    .process(linksResponseProcessor)
                 .endChoice();
 
 
@@ -123,7 +133,7 @@ public class LinksRoute extends RouteBuilder {
                 })
                 .choice()
                 .when(exchange -> exchange.getIn().getBody(RequestStateDTO.class).getStatus().equals("completed"))
-                    .setProperty(TRANSACTION_FAILED, constant(false))
+                    .setProperty(LINK_CREATE_FAILED, constant(false))
                     .setProperty(RESPONSE_OBJECT_TYPE, constant("links"))
                     .to("direct:response-route")
                     .choice()
@@ -132,11 +142,16 @@ public class LinksRoute extends RouteBuilder {
                             String linkref = exchange.getProperty(RESPONSE_OBJECT, LinksDTO.class).getLinkReference();
                             exchange.setProperty(LINK_REFERENCE, linkref);
                         })
-                        .log(LoggingLevel.INFO, "Link reference is: ${exchangeProperty."+LINK_REFERENCE+"}") // TODO: Publish Reference in Message
+                        .log(LoggingLevel.INFO, "Link reference is: ${exchangeProperty."+LINK_REFERENCE+"}")
+                    .otherwise()
+                        .setProperty(ERROR_INFORMATION, simple("Error in getting link reference."))
+                        .setProperty(LINK_CREATE_FAILED, constant(true))
                     .endChoice()
                 .otherwise()
-                    .setProperty(TRANSACTION_FAILED, constant(true))
-                .endChoice();
+                    .process(exchange -> exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(RequestStateDTO.class).getError().getErrorDescription()))
+                    .setProperty(LINK_CREATE_FAILED, constant(true))
+                .end()
+                .process(linksResponseProcessor);
 
 
         /**

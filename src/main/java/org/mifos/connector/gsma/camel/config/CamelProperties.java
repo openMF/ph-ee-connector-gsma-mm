@@ -37,5 +37,6 @@ public class CamelProperties {
     public static final String LINKS_REQUEST_BODY = "linksRequestBody";
     public static final String LINK_REFERENCE = "linkReference";
     public static final String RESPONSE_OBJECT_TYPE = "responseObjectType";
+    public static final String TRANSACTION_CORRELATION_ID = "transactionCorrelationId";
 
 }
