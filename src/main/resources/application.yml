@@ -1,6 +1,6 @@
 camel:
   server-port: ${PORT:5000}
-  host: "http://8a3c83721a50.ngrok.io"
+  host: "http://b46605072d3e.ngrok.io"
   springboot:
     main-run-controller: true
   dataformat:

@@ -1,14 +1,14 @@
 package org.mifos.connector.gsma.state;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
+import org.mifos.connector.gsma.transfer.TransferResponseProcessor;
 import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
-import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CORELATION_ID;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.CORRELATION_ID;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
 
 @Component
 public class TransactionStateRoute extends RouteBuilder {
@@ -32,6 +33,9 @@ public class TransactionStateRoute extends RouteBuilder {
     @Autowired
     private CorrelationIDStore correlationIDStore;
 
+    @Autowired
+    private TransferResponseProcessor transferResponseProcessor;
+
     @Value("${gsma.api.host}")
     private String BaseURL;
 
@@ -39,6 +43,23 @@ public class TransactionStateRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        from("direct:transaction-state-check")
+                .id("transaction-state-check")
+                .to("direct:transaction-state")
+                .process(exchange -> {
+                    if (exchange.getProperty(STATUS_AVAILABLE, Boolean.class)) {
+                        if (exchange.getProperty(TRANSACTION_STATUS, String.class).equals("failed")) {
+                            exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(RequestStateDTO.class).getError().getErrorDescription());
+                            exchange.setProperty(TRANSACTION_FAILED, true);
+                        } else if (exchange.getProperty(TRANSACTION_STATUS, String.class).equals("completed")) {
+                            exchange.setProperty(TRANSACTION_FAILED, false);
+                        }
+                    } else {
+                        exchange.setProperty(TRANSACTION_FAILED, true);
+                    }
+                })
+                .process(transferResponseProcessor);
 
         /**
          * Base Route for Transaction State
@@ -50,10 +71,10 @@ public class TransactionStateRoute extends RouteBuilder {
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on.")
                 .choice()
-                .when(exchange -> correlationIDStore.isClientCorrelationPresent(exchange.getProperty(CORELATION_ID, String.class)))
+                .when(exchange -> correlationIDStore.isClientCorrelationPresent(exchange.getProperty(CORRELATION_ID, String.class)))
                     .log(LoggingLevel.INFO, "Getting Server Correlation ID")
                     .process(exchange -> {
-                        Stream<String> serverCorrelations = correlationIDStore.getServerCorrelations(exchange.getProperty(CORELATION_ID, String.class));
+                        Stream<String> serverCorrelations = correlationIDStore.getServerCorrelations(exchange.getProperty(CORRELATION_ID, String.class));
                         String serverCorrelationID = serverCorrelations.findFirst().get();
                         exchange.setProperty(SERVER_CORRELATION, serverCorrelationID);
                         logger.info("Server CorrelationID: " + serverCorrelationID);
@@ -90,8 +111,11 @@ public class TransactionStateRoute extends RouteBuilder {
         from("direct:transaction-state-error")
                 .id("transaction-state-error")
                 .log(LoggingLevel.INFO, "Error in getting Transaction State")
-                .setProperty(STATUS_AVAILABLE, constant(false));
-
+                .unmarshal().json(JsonLibrary.Jackson, ErrorDTO.class)
+                .process(exchange -> {
+                    exchange.setProperty(STATUS_AVAILABLE, false);
+                    exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(ErrorDTO.class).getErrorDescription());
+                });
         /**
          * Success route handler
          */

@@ -14,7 +14,6 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_STATUS;
 
 public class TransactionResponseWorker {
 
@@ -42,13 +41,14 @@ public class TransactionResponseWorker {
                     Map<String, Object> variables = job.getVariablesAsMap();
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(RESPONSE_OBJECT_TYPE, "transaction");
 
-                    producerTemplate.send("direct:transaction-response", exchange);
+                    producerTemplate.send("direct:response-route", exchange);
 
-                    variables.put(TRANSACTION_OBJECT_AVAILABLE, exchange.getProperty(TRANSACTION_OBJECT_AVAILABLE, Boolean.class));
-                    if (exchange.getProperty(TRANSACTION_OBJECT_AVAILABLE, Boolean.class))
-                        variables.put(TRANSACTION_OBJECT, exchange.getProperty(TRANSACTION_OBJECT, String.class));
+                    variables.put(TRANSACTION_OBJECT_AVAILABLE, exchange.getProperty(RESPONSE_OBJECT_AVAILABLE, Boolean.class));
+                    if (exchange.getProperty(RESPONSE_OBJECT_AVAILABLE, Boolean.class))
+                        variables.put(TRANSACTION_OBJECT, exchange.getProperty(RESPONSE_OBJECT, String.class));
 
                     client.newCompleteCommand(job.getKey())
                             .variables(variables)

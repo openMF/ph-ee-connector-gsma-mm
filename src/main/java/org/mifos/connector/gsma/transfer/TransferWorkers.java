@@ -42,12 +42,13 @@ public class TransferWorkers {
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
-                    variables.put(TRANSFER_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(TRANSFER_RETRY_COUNT, -1));
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));
+                    exchange.setProperty(TRANSACTION_TYPE, variables.get(TRANSACTION_TYPE));
+                    exchange.setProperty(GSMA_AUTHORIZATION_CODE, variables.get(GSMA_AUTHORIZATION_CODE));
 
                     producerTemplate.send("direct:transfer-route", exchange);
 

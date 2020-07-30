@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.transfer.dto;
 
-import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
+import org.mifos.connector.gsma.account.dto.ErrorDTO;
 
 public class RequestStateDTO {
 
