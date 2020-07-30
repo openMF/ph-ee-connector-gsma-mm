@@ -24,4 +24,10 @@ public class CamelProperties {
     public static final String TRANSACTION_ID = "transactionId";
     public static final String CHANNEL_REQUEST = "channelRequest";
     public static final String IS_RTP_REQUEST = "isRtpRequest";
+    public static final String SERVER_CORRELATION = "isRtpRequest";
+    public static final String TRANSACTION_STATUS = "transactionStatus";
+    public static final String STATUS_AVAILABLE = "statusAvailable";
+    public static final String TRANSACTION_LINK = "transactionLink";
+    public static final String TRANSACTION_OBJECT = "transactionObject";
+    public static final String TRANSACTION_OBJECT_AVAILABLE = "transactionObjectAvailable";
 }
