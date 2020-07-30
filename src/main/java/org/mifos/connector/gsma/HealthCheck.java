@@ -40,7 +40,6 @@ public class HealthCheck extends RouteBuilder {
         from("rest:POST:/")
                 .log(LoggingLevel.INFO, "POST Body: ${body}")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
-                .setBody(constant("POST Good"));
-
+                .setBody(constant("All Post Good"));
     }
 }

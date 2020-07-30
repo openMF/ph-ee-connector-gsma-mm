@@ -49,6 +49,8 @@ public class IdentifierLookupWorkers {
                     exchange.setProperty(CORELATION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(ACCOUNT_ACTION, "status");
+                    exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));
+
                     producerTemplate.send("direct:account-route", exchange);
 
                     client.newCompleteCommand(job.getKey())

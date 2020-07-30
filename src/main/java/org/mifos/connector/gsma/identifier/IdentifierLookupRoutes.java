@@ -7,6 +7,7 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
+import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.identifier.dto.AccountBalanceResponseDTO;
 import org.mifos.connector.gsma.identifier.dto.ErrorDTO;
@@ -136,8 +137,10 @@ public class IdentifierLookupRoutes extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Getting ${exchangeProperty."+ACCOUNT_ACTION+"} for Identifier")
                 .process(exchange -> {
                     TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
-                    exchange.setProperty(IDENTIFIER_TYPE, channelRequest.getPayee().getPartyIdInfo().getPartyIdType().toString().toLowerCase());
-                    exchange.setProperty(IDENTIFIER, channelRequest.getPayee().getPartyIdInfo().getPartyIdentifier());
+                    PartyIdInfo requestedParty = exchange.getProperty(IS_RTP_REQUEST, Boolean.class) ? channelRequest.getPayer().getPartyIdInfo() : channelRequest.getPayee().getPartyIdInfo();
+
+                    exchange.setProperty(IDENTIFIER_TYPE, requestedParty.getPartyIdType().toString().toLowerCase());
+                    exchange.setProperty(IDENTIFIER, requestedParty.getPartyIdentifier());
                 })
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))

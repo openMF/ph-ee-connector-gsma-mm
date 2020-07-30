@@ -10,8 +10,7 @@ import org.mifos.connector.gsma.transfer.dto.Party;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import static org.mifos.connector.gsma.camel.config.CamelProperties.CHANNEL_REQUEST;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_BODY;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 
 @Component
 public class TransformRequestDataProcessor implements Processor {
@@ -41,6 +40,10 @@ public class TransformRequestDataProcessor implements Processor {
         String currency = channelRequest.getAmount().getCurrency();
 
         String type = channelRequest.getTransactionType().getScenario().toString().toLowerCase();
+
+        if (exchange.getProperty(IS_RTP_REQUEST, Boolean.class)) {
+            type = "merchantpay";
+        }
 
         gsmaTransaction.setAmount(amount);
         gsmaTransaction.setCurrency(currency);
