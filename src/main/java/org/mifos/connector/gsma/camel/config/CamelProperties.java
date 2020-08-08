@@ -45,5 +45,7 @@ public class CamelProperties {
     public static final String BILLS_CALL_FAILED = "billsCallFailed";
     public static final String BILL_COMPANIES = "billCompanies";
     public static final String BILLS = "bills";
+    public static final String BILLS_REQUEST_BODY = "billsRequestBody";
+    public static final String BILL_REFERENCE = "billReference";
 
 }

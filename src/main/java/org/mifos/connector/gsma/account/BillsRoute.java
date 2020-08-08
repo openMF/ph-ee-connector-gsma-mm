@@ -5,6 +5,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
+import org.mifos.connector.gsma.account.dto.BillPaymentDTO;
 import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
@@ -115,7 +118,7 @@ public class BillsRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"} + /billcompanies + ?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}" + "/billcompanies" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * API call to get bills for an account
@@ -126,7 +129,7 @@ public class BillsRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"} + /bills + ?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}" + "/bills" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * API call to initiate payment for bill
@@ -140,10 +143,10 @@ public class BillsRoute extends RouteBuilder {
                 .setHeader("X-Callback-URL", simple(HostURL + "/bills/payment/callback"))
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+ CORRELATION_ID +"}"))
                 .setHeader("Content-Type", constant("application/json"))
-                .setBody(exchange -> exchange.getProperty(LINKS_REQUEST_BODY))
+                .setBody(exchange -> exchange.getProperty(BILLS_REQUEST_BODY))
                 .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Links Request Body: ${body}")
-                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/links?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/bills/${exchangeProperty."+BILL_REFERENCE+"}/payments?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Callback for bill payment
@@ -153,7 +156,7 @@ public class BillsRoute extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
                 .process(exchange -> {
                     String serverUUID = exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId();
-                    exchange.setProperty(CORRELATION_ID, correlationIDStore.getClientCorrelation(serverUUID));
+                    exchange.setProperty(TRANSACTION_ID, correlationIDStore.getClientCorrelation(serverUUID));
                 })
                 .choice()
                     .when(exchange -> exchange.getIn().getBody(RequestStateDTO.class).getStatus().equals("completed"))
@@ -163,6 +166,56 @@ public class BillsRoute extends RouteBuilder {
                     .setProperty(TRANSACTION_FAILED, constant(true))
                 .end()
                 .process(transferResponseProcessor);
+
+        /**
+         * API to initiate bill payment
+         */
+        from("rest:POST:/bills/payment")
+                .log(LoggingLevel.INFO, "Got bill payment POST request")
+                .process(exchange -> {
+
+                    exchange.setProperty(BILLS_ACTION, "payment");
+
+                    TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getIn().getBody(String.class), TransactionChannelRequestDTO.class);
+                    exchange.setProperty(BILL_REFERENCE, channelRequest.getPayee().getPartyIdInfo().getPartyIdentifier());
+                    exchange.setProperty(IDENTIFIER_TYPE, channelRequest.getPayer().getPartyIdInfo().getPartyIdType());
+                    exchange.setProperty(IDENTIFIER, channelRequest.getPayer().getPartyIdInfo().getPartyIdentifier());
+
+                    BillPaymentDTO paymentDTO = new BillPaymentDTO();
+
+                    paymentDTO.setAmountPaid(channelRequest.getAmount().getAmount());
+                    paymentDTO.setCurrency(channelRequest.getAmount().getCurrency());
+
+                    exchange.setProperty(BILLS_REQUEST_BODY, paymentDTO);
+                    exchange.setProperty(CORRELATION_ID, UUID.randomUUID());
+                })
+                .to("direct:bills-route-base");
+
+        /**
+         * API to get bills for an account
+         */
+        from("rest:GET:/account/bills/{identifier_type}/{identifier}")
+                .log(LoggingLevel.INFO, "Getting Account Bills")
+                .process(exchange -> {
+                    exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
+                    exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
+                    exchange.setProperty(BILLS_ACTION, "bills");
+                })
+                .to("direct:bills-route-base")
+                .setBody(exchange -> exchange.getProperty(BILLS, String.class));
+
+        /**
+         * API to get bill companies associated with an account
+         */
+        from("rest:GET:/account/billcompanies/{identifier_type}/{identifier}")
+                .log(LoggingLevel.INFO, "Getting Account Status")
+                .process(exchange -> {
+                    exchange.setProperty(IDENTIFIER_TYPE, exchange.getIn().getHeader("identifier_type"));
+                    exchange.setProperty(IDENTIFIER, exchange.getIn().getHeader("identifier"));
+                    exchange.setProperty(BILLS_ACTION, "companies");
+                })
+                .to("direct:bills-route-base")
+                .setBody(exchange -> exchange.getProperty(BILL_COMPANIES, String.class));
 
     }
 
