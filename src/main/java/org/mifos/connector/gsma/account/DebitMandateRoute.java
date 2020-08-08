@@ -10,7 +10,6 @@ import org.mifos.connector.gsma.account.dto.DebitMandateDTO;
 import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
-import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +21,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_TYPE;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.LINK_CREATE_FAILED;
 
 @Component
 public class DebitMandateRoute extends RouteBuilder {
