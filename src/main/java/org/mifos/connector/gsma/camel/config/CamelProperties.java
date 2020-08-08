@@ -7,7 +7,6 @@ public class CamelProperties {
 
     private CamelProperties() {}
 
-    public static final String SOME_PROPERTY = "someProperty";
     public static final String ORIGIN_DATE = "originDate";
     public static final String AUTH_HOST = "authUrl";
     public static final String CLIENT_KEY = "clientKey";
@@ -42,5 +41,9 @@ public class CamelProperties {
     public static final String DEBIT_MANDATE_BODY = "debitMandateBody";
     public static final String MANDATE_REFERENCE = "mandateReference";
     public static final String MANDATE_CREATE_FAILED = "mandateCreateFailed";
+    public static final String BILLS_ACTION = "billsAction";
+    public static final String BILLS_CALL_FAILED = "billsCallFailed";
+    public static final String BILL_COMPANIES = "billCompanies";
+    public static final String BILLS = "bills";
 
 }
