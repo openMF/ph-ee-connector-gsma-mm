@@ -39,6 +39,9 @@ public class ReversalRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        /**
+         * Reversal Starter with client correlation ID
+         */
         from("direct:reversal-starter")
                 .id("reversal-starter")
                 .setProperty(RESPONSE_OBJECT_TYPE, constant("transaction"))
@@ -50,6 +53,9 @@ public class ReversalRoute extends RouteBuilder {
                 .otherwise()
                     .log("Failed to get transaction reference");
 
+        /**
+         * Base route for reversal with transaction reference
+         */
         from("direct:reversal-base-route")
                 .id("reversal-base-route")
                 .log(LoggingLevel.INFO, "Reversal route started")
@@ -70,6 +76,9 @@ public class ReversalRoute extends RouteBuilder {
                     .log(LoggingLevel.INFO, "Reversal transaction failed")
                 .endChoice();
 
+        /**
+         * Call GSMA APIs to commit reversal
+         */
         from("direct:commit-reversal")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
@@ -81,6 +90,9 @@ public class ReversalRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
                 .toD(BaseURL + "/transactions" + "/${exchangeProperty."+TRANSACTION_REFERENCE+"}" + "/reversals" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
+        /**
+         * API to start reversal
+         */
         from("rest:GET:/transaction/reverse/{correlation}")
                 .log(LoggingLevel.INFO, "Transaction Reverse API")
                 .process(exchange -> {

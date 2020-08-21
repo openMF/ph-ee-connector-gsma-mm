@@ -80,6 +80,9 @@ public class AuthorizationCodeRoutes extends RouteBuilder {
                 .marshal().json(JsonLibrary.Jackson)
                 .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/authorisationcodes?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
+        /**
+         * API to get Authorization Code
+         */
         from("rest:GET:/account/authcode/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Authorization Code")
                 .process(exchange -> {

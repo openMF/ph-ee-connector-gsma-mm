@@ -151,6 +151,9 @@ public class AccountRoutes extends RouteBuilder {
                 .endChoice();
 
 
+        /**
+         * Method to get account status
+         */
         from("rest:GET:/account/status/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Account Status")
                 .process(exchange -> {
@@ -162,6 +165,9 @@ public class AccountRoutes extends RouteBuilder {
                 .to("direct:account-route");
 
 
+        /**
+         * Method to get account name
+         */
         from("rest:GET:/account/name/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Account Name")
                 .process(exchange -> {
@@ -173,6 +179,9 @@ public class AccountRoutes extends RouteBuilder {
                 .to("direct:account-route");
 
 
+        /**
+         * Method to get account balance
+         */
         from("rest:GET:/account/balance/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Account Balance")
                 .process(exchange -> {
@@ -184,6 +193,9 @@ public class AccountRoutes extends RouteBuilder {
                 .to("direct:account-route");
 
 
+        /**
+         * Method to get account statement
+         */
         from("rest:GET:/account/statements/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Account Statements")
                 .process(exchange -> {
@@ -195,6 +207,9 @@ public class AccountRoutes extends RouteBuilder {
                 .to("direct:account-route");
 
 
+        /**
+         * Method to get account transactions
+         */
         from("rest:GET:/account/transactions/{identifier_type}/{identifier}")
                 .log(LoggingLevel.INFO, "Getting Account Transactions")
                 .process(exchange -> {

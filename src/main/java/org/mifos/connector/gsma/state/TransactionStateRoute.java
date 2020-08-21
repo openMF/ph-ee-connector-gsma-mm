@@ -44,6 +44,9 @@ public class TransactionStateRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        /**
+         * Route to check state and assign flags
+         */
         from("direct:transaction-state-check")
                 .id("transaction-state-check")
                 .to("direct:transaction-state")

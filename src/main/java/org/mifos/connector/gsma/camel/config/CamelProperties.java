@@ -39,5 +39,8 @@ public class CamelProperties {
     public static final String RESPONSE_OBJECT_TYPE = "responseObjectType";
     public static final String TRANSACTION_CORRELATION_ID = "transactionCorrelationId";
     public static final String TRANSACTION_REFERENCE = "transactionReference";
+    public static final String DEBIT_MANDATE_BODY = "debitMandateBody";
+    public static final String MANDATE_REFERENCE = "mandateReference";
+    public static final String MANDATE_CREATE_FAILED = "mandateCreateFailed";
 
 }
