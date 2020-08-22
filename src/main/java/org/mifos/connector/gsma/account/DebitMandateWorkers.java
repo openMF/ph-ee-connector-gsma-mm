@@ -1,7 +1,6 @@
 package org.mifos.connector.gsma.account;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -24,7 +23,6 @@ import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.NUMBER_OF_PAYMENTS;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.PAYEE_LOOKUP_RETRY_COUNT;
 
 @Component
 public class DebitMandateWorkers {

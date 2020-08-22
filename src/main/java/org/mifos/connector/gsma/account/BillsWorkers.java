@@ -1,7 +1,6 @@
 package org.mifos.connector.gsma.account;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.zeebe.client.ZeebeClient;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;

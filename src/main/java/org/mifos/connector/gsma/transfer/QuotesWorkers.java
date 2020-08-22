@@ -38,7 +38,7 @@ public class QuotesWorkers {
     public void setupWorkers() {
 
         zeebeClient.newWorker()
-                .jobType("quote-gsma")
+                .jobType("quote-gsma-payer")
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
@@ -46,6 +46,7 @@ public class QuotesWorkers {
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
+                    exchange.setProperty(GSMA_CHANNEL_REQUEST, variables.get("gsmaChannelRequest"));
 
                     producerTemplate.send("direct:quote-route-base", exchange);
 
@@ -54,7 +55,7 @@ public class QuotesWorkers {
                             .send()
                             .join();
                 })
-                .name("quote-gsma")
+                .name("quote-gsma-payer")
                 .maxJobsActive(workerMaxJobs)
                 .open();
 

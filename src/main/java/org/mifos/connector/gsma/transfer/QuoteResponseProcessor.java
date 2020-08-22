@@ -14,9 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_STATE;
-import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_RESPONSE;
+import static org.mifos.connector.gsma.zeebe.ZeebeMessages.GSMA_QUOTE_RESPONSE;
 
 @Component
 public class QuoteResponseProcessor implements Processor {
@@ -34,21 +32,21 @@ public class QuoteResponseProcessor implements Processor {
 
         Map<String, Object> variables = new HashMap<>();
 
-        Object hasTransferFailed = exchange.getProperty(QUOTE_FAILED);
+        Object hasTransferFailed = exchange.getProperty(GSMA_QUOTE_FAILED);
 
         if (hasTransferFailed != null && (boolean)hasTransferFailed) {
-            variables.put(QUOTE_FAILED, true);
+            variables.put(GSMA_QUOTE_FAILED, true);
             variables.put(ERROR_INFORMATION, exchange.getIn().getBody(String.class));
         } else {
             variables.put(QUOTE_ID, exchange.getProperty(QUOTE_ID));
             variables.put(QUOTE_REFERENCE, exchange.getProperty(QUOTE_REFERENCE));
-            variables.put(QUOTE_FAILED, false);
+            variables.put(GSMA_QUOTE_FAILED, false);
         }
 
-        logger.info("Publishing transaction message variables: " + variables);
+        logger.info("Publishing quote message variables: " + variables);
 
         zeebeClient.newPublishMessageCommand()
-                .messageName(TRANSFER_RESPONSE)
+                .messageName(GSMA_QUOTE_RESPONSE)
                 .correlationKey(exchange.getProperty(TRANSACTION_ID, String.class))
                 .timeToLive(Duration.ofMillis(timeToLive))
                 .variables(variables)

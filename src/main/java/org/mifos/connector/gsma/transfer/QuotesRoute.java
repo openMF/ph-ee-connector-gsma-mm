@@ -8,6 +8,7 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.gsma.account.dto.ErrorDTO;
 import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
+import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
 import org.mifos.connector.gsma.transfer.dto.QuotesDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,10 +53,21 @@ public class QuotesRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Transfer route started")
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
-                .log(LoggingLevel.INFO, "Got access token, moving on to transform data")
-                .process(exchange -> exchange.setProperty(QUOTE_REQUEST_BODY, dataTransformer
-                        .getQuoteRequestBody(objectMapper.readValue(exchange
-                                .getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class))))
+                .log(LoggingLevel.INFO, "Got access token, moving on")
+                .process(exchange -> {
+                    QuotesDTO gsmaQuoteRequestBody = new QuotesDTO();
+                    GSMATransaction gsmaChannelRequestBody = exchange.getProperty(GSMA_CHANNEL_REQUEST, GSMATransaction.class);
+
+                    gsmaQuoteRequestBody.setRequestDate(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT ));
+                    gsmaQuoteRequestBody.setCreditParty(gsmaChannelRequestBody.getCreditParty());
+                    gsmaQuoteRequestBody.setDebitParty(gsmaChannelRequestBody.getDebitParty());
+                    gsmaQuoteRequestBody.setRequestAmount(gsmaChannelRequestBody.getAmount());
+                    gsmaQuoteRequestBody.setRequestCurrency(gsmaChannelRequestBody.getCurrency());
+                    gsmaQuoteRequestBody.setSenderKyc(gsmaChannelRequestBody.getSenderKyc());
+                    gsmaQuoteRequestBody.setType("inttransfer");
+
+                    exchange.setProperty(QUOTE_REQUEST_BODY, gsmaQuoteRequestBody);
+                })
                 .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:get-quote")
                 .log(LoggingLevel.INFO, "Quote API response: ${body}")
@@ -64,7 +76,7 @@ public class QuotesRoute extends RouteBuilder {
                 .when(header("CamelHttpResponseCode").isEqualTo("201"))
                     .log(LoggingLevel.INFO, "Quote request successful")
                     .unmarshal().json(JsonLibrary.Jackson, QuotesDTO.class)
-                    .setProperty(QUOTE_FAILED, constant(false))
+                    .setProperty(GSMA_QUOTE_FAILED, constant(false))
                     .process(exchange -> {
                         exchange.setProperty(QUOTE_ID, exchange.getIn().getBody(QuotesDTO.class).getQuotes()[0].getQuoteId());
                         exchange.setProperty(QUOTE_REFERENCE, exchange.getIn().getBody(QuotesDTO.class).getQuotationReference());
@@ -75,8 +87,8 @@ public class QuotesRoute extends RouteBuilder {
                     .process(exchange -> {
                         exchange.setProperty(ERROR_INFORMATION, exchange.getIn().getBody(ErrorDTO.class).getErrorCode());
                     })
-                    .setProperty(QUOTE_FAILED, constant(true))
-                .endChoice()
+                    .setProperty(GSMA_QUOTE_FAILED, constant(true))
+                .end()
                 .process(quoteResponseProcessor);
 
 
@@ -87,7 +99,7 @@ public class QuotesRoute extends RouteBuilder {
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
                 .setHeader("Content-Type", constant("application/json"))
-                .setBody(exchange -> exchange.getProperty(QUOTE_REQUEST_BODY)) // To be changed to QuoteDTO Body
+                .setBody(exchange -> exchange.getProperty(QUOTE_REQUEST_BODY))
                 .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Quote Request Body: ${body}")
                 .toD(BaseURL + "/quotations" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");

@@ -17,6 +17,7 @@ import static org.mifos.connector.gsma.camel.config.CamelProperties.ERROR_INFORM
 import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_ID;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_STATE;
+import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_MESSAGE;
 import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_RESPONSE;
 
 @Component
@@ -43,6 +44,13 @@ public class TransferResponseProcessor implements Processor {
         } else {
             variables.put(TRANSFER_STATE, "COMMITTED");
             variables.put(TRANSACTION_FAILED, false);
+
+            zeebeClient.newPublishMessageCommand()
+                    .messageName(TRANSFER_MESSAGE)
+                    .correlationKey(exchange.getProperty(TRANSACTION_ID, String.class))
+                    .variables(variables)
+                    .send()
+                    .join();
         }
 
         logger.info("Publishing transaction message variables: " + variables);
