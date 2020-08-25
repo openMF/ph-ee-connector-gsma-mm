@@ -13,15 +13,11 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mifos.connector.gsma.camel.config.CamelProperties.ERROR_INFORMATION;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_ID;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_STATE;
-import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_MESSAGE;
-import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_RESPONSE;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
+import static org.mifos.connector.gsma.zeebe.ZeebeMessages.GSMA_QUOTE_RESPONSE;
 
 @Component
-public class TransferResponseProcessor implements Processor {
+public class QuoteResponseProcessor implements Processor {
 
     @Autowired
     private ZeebeClient zeebeClient;
@@ -36,27 +32,21 @@ public class TransferResponseProcessor implements Processor {
 
         Map<String, Object> variables = new HashMap<>();
 
-        Object hasTransferFailed = exchange.getProperty(TRANSACTION_FAILED);
+        Object hasTransferFailed = exchange.getProperty(GSMA_QUOTE_FAILED);
 
         if (hasTransferFailed != null && (boolean)hasTransferFailed) {
-            variables.put(TRANSACTION_FAILED, true);
+            variables.put(GSMA_QUOTE_FAILED, true);
             variables.put(ERROR_INFORMATION, exchange.getIn().getBody(String.class));
         } else {
-            variables.put(TRANSFER_STATE, "COMMITTED");
-            variables.put(TRANSACTION_FAILED, false);
-
-            zeebeClient.newPublishMessageCommand()
-                    .messageName(TRANSFER_MESSAGE)
-                    .correlationKey(exchange.getProperty(TRANSACTION_ID, String.class))
-                    .variables(variables)
-                    .send()
-                    .join();
+            variables.put(QUOTE_ID, exchange.getProperty(QUOTE_ID));
+            variables.put(QUOTE_REFERENCE, exchange.getProperty(QUOTE_REFERENCE));
+            variables.put(GSMA_QUOTE_FAILED, false);
         }
 
-        logger.info("Publishing transaction message variables: " + variables);
+        logger.info("Publishing quote message variables: " + variables);
 
         zeebeClient.newPublishMessageCommand()
-                .messageName(TRANSFER_RESPONSE)
+                .messageName(GSMA_QUOTE_RESPONSE)
                 .correlationKey(exchange.getProperty(TRANSACTION_ID, String.class))
                 .timeToLive(Duration.ofMillis(timeToLive))
                 .variables(variables)
@@ -64,4 +54,5 @@ public class TransferResponseProcessor implements Processor {
                 .join();
 
     }
+
 }

@@ -1,6 +1,11 @@
 package org.mifos.connector.gsma.zeebe;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zeebe.client.ZeebeClient;
+import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
+import org.mifos.connector.common.mojaloop.dto.QuoteSwitchRequestDTO;
+import org.mifos.connector.common.mojaloop.dto.QuoteSwitchResponseDTO;
+import org.mifos.connector.common.mojaloop.type.AmountType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +13,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Map;
+
+import static org.mifos.connector.gsma.zeebe.ZeebeVariables.QUOTE_SWITCH_RESULT;
 
 @Component
 public class ZeebeeWorkers {
@@ -17,11 +25,43 @@ public class ZeebeeWorkers {
     @Autowired
     private ZeebeClient zeebeClient;
 
+    @Autowired
+    private ZeebeProcessStarter zeebeProcessStarter;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Value("${zeebe.client.evenly-allocated-max-jobs}")
     private int workerMaxJobs;
 
     @PostConstruct
     public void setupWorkers() {
+
+        zeebeClient.newWorker()
+                .jobType("payeeProcess")
+                .handler((client, job) -> {
+                    logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+
+                    Map<String, Object> variables = job.getVariablesAsMap();
+                    TransactionChannelRequestDTO channelRequest = objectMapper.readValue((String) variables.get("channelRequest"), TransactionChannelRequestDTO.class);
+
+                    QuoteSwitchRequestDTO quoteRequest = new QuoteSwitchRequestDTO();
+                    quoteRequest.setAmount(channelRequest.getAmount());
+                    quoteRequest.setPayee(channelRequest.getPayee());
+                    quoteRequest.setPayer(channelRequest.getPayer());
+                    quoteRequest.setAmountType(AmountType.SEND);
+
+                    variables.put(QUOTE_SWITCH_RESULT, quoteRequest);
+                    zeebeProcessStarter.startZeebeWorkflow("gsma_payee_process", variables);
+
+                    client.newCompleteCommand(job.getKey())
+                            .send()
+                            .join();
+                })
+                .name("payeeProcess")
+                .maxJobsActive(workerMaxJobs)
+                .open();
+
 
         zeebeClient.newWorker()
                 .jobType("testerWorker")

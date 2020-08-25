@@ -57,8 +57,7 @@ public class TransferRoutes extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Transfer route started")
                 .to("direct:get-access-token")
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
-                .log(LoggingLevel.INFO, "Got access token, moving on to transform data")
-                .process(transformRequestData)
+                .log(LoggingLevel.INFO, "Got access token, moving on")
                 .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:commit-transaction")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
@@ -97,7 +96,7 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader("X-Callback-URL", simple(HostURL + "/transfer/callback"))
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+ CORRELATION_ID +"}"))
                 .setHeader("Content-Type", constant("application/json"))
-                .setBody(exchange -> exchange.getProperty(TRANSACTION_BODY))
+                .setBody(exchange -> exchange.getProperty(GSMA_CHANNEL_REQUEST))
                 .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
                 .toD(BaseURL + "/transactions/type" + "/${exchangeProperty."+TRANSACTION_TYPE+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
