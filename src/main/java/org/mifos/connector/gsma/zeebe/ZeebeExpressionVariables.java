@@ -11,6 +11,7 @@ public class ZeebeExpressionVariables {
     public static final String LINK_CREATE_FAILED = "linkCreationFailed";
     public static final String LINK_CREATION_COUNT = "linkCreationRetryCount";
     public static final String NUMBER_OF_PAYMENTS = "numberOfPayments";
+    public static final String BILLS_STATUS_ERROR = "billStatusError";
 
     private ZeebeExpressionVariables() {
     }

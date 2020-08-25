@@ -62,22 +62,29 @@ public class TransferRoutes extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:commit-transaction")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
+                .to("direct:transaction-response-handler");
+
+        /**
+         * Route to handle async API responses
+         */
+        from("direct:transaction-response-handler")
+                .id("transaction-response-handler")
                 .choice()
-                    .when(header("CamelHttpResponseCode").isEqualTo("202"))
-                        .log(LoggingLevel.INFO, "Transaction request successful")
-                        .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
-                        .process(exchange -> {
-                            correlationIDStore.addMapping(exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId(),
-                                    exchange.getProperty(CORRELATION_ID, String.class));
-                            logger.info("Saved correlationId mapping");
-                        })
-                    .otherwise()
-                        .log(LoggingLevel.ERROR, "Transaction request unsuccessful")
-                        .process(exchange -> {
-                            exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORRELATION_ID)); // TODO: Improve this
-                        })
-                        .setProperty(TRANSACTION_FAILED, constant(true))
-                        .process(transferResponseProcessor);
+                .when(header("CamelHttpResponseCode").isEqualTo("202"))
+                    .log(LoggingLevel.INFO, "Transaction request successful")
+                    .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
+                    .process(exchange -> {
+                        correlationIDStore.addMapping(exchange.getIn().getBody(RequestStateDTO.class).getServerCorrelationId(),
+                                exchange.getProperty(CORRELATION_ID, String.class));
+                        logger.info("Saved correlationId mapping");
+                    })
+                .otherwise()
+                    .log(LoggingLevel.ERROR, "Transaction request unsuccessful")
+                    .process(exchange -> {
+                        exchange.setProperty(TRANSACTION_ID, exchange.getProperty(CORRELATION_ID)); // TODO: Improve this
+                    })
+                    .setProperty(TRANSACTION_FAILED, constant(true))
+                .process(transferResponseProcessor);
 
         /**
          * Calls GSMA API to commit transaction
