@@ -16,27 +16,11 @@ public class ZeebeClientConfiguration {
     @Value("${zeebe.client.max-execution-threads}")
     private int zeebeClientMaxThreads;
 
-    @Value("${zeebe.broker.audience}")
-    private String zeebeAudience;
-
-    @Value("${zeebe.broker.clientId}")
-    private String zeebeClientId;
-
-    @Value("${zeebe.broker.clientSecret}")
-    private String zeebeClientSecret;
-
     @Bean
     public ZeebeClient setup() {
-        OAuthCredentialsProvider cred = new OAuthCredentialsProviderBuilder()
-                .audience(zeebeAudience)
-                .clientId(zeebeClientId)
-                .clientSecret(zeebeClientSecret)
-                .build();
-
         return ZeebeClient.newClientBuilder()
                 .brokerContactPoint(zeebeBrokerContactpoint)
-                .credentialsProvider(cred)
-//                .usePlaintext()
+                .usePlaintext()
                 .numJobWorkerExecutionThreads(zeebeClientMaxThreads)
                 .build();
     }

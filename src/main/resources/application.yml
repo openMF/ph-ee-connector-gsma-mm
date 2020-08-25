@@ -14,14 +14,11 @@ bpmn:
 zeebe:
   client:
     max-execution-threads: 100
-    number-of-workers: 14
+    number-of-workers: 8
     evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
     ttl: 30000
   broker:
-    contactpoint: "244c0260-712b-4378-93b4-70cc810b4888.zeebe.camunda.io:443"
-    audience: "244c0260-712b-4378-93b4-70cc810b4888.zeebe.camunda.io"
-    clientId: "eXKQYYuQwJe6M~Qa8ZVpW21DySzrue0I"
-    clientSecret: "EtFosJAKuGIaX8PxJ.XkmH_x-3vOEIep_8Uu8FvGSCNDYgwfnH_U-kJBmfzzICPp"
+    contactpoint: "127.0.0.1:26500"
 
 gsma:
   auth:
