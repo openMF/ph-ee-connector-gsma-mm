@@ -5,6 +5,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
+import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.ErrorDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.connector.common.gsma.dto.QuotesDTO;
@@ -55,7 +56,7 @@ public class QuotesRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Got access token, moving on")
                 .process(exchange -> {
                     QuotesDTO gsmaQuoteRequestBody = new QuotesDTO();
-                    GSMATransaction gsmaChannelRequestBody = exchange.getProperty(GSMA_CHANNEL_REQUEST, GSMATransaction.class);
+                    GSMATransaction gsmaChannelRequestBody = objectMapper.readValue(exchange.getProperty(GSMA_CHANNEL_REQUEST, String.class), GSMATransaction.class);
 
                     gsmaQuoteRequestBody.setRequestDate(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT ));
                     gsmaQuoteRequestBody.setCreditParty(gsmaChannelRequestBody.getCreditParty());

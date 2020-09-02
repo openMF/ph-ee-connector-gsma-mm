@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.camel.config.CamelProperties.GSMA_AUTHORIZATION_CODE;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.QUOTE_RETRY_COUNT;
 
 @Component
 public class QuotesWorkers {
@@ -42,9 +42,10 @@ public class QuotesWorkers {
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
+                    variables.put(QUOTE_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(QUOTE_RETRY_COUNT, -1));
 
                     Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
+                    exchange.setProperty(TRANSACTION_ID, variables.get("transactionId"));
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(GSMA_CHANNEL_REQUEST, variables.get("gsmaChannelRequest"));
 
