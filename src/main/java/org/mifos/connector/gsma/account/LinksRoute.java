@@ -6,13 +6,13 @@ import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
+import org.mifos.connector.common.gsma.dto.ErrorDTO;
+import org.mifos.connector.common.gsma.dto.GsmaParty;
+import org.mifos.connector.common.gsma.dto.LinksDTO;
+import org.mifos.connector.common.gsma.dto.RequestStateDTO;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
-import org.mifos.connector.gsma.account.dto.ErrorDTO;
-import org.mifos.connector.gsma.account.dto.LinksDTO;
-import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
+import org.mifos.connector.gsma.auth.AccessTokenStore;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
-import org.mifos.connector.gsma.transfer.dto.Party;
-import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,7 +165,7 @@ public class LinksRoute extends RouteBuilder {
                     exchange.setProperty(IS_RTP_REQUEST, false);
 
                     TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
-                    Party party = new Party();
+                    GsmaParty party = new GsmaParty();
                     LinksDTO linksDTO = new LinksDTO();
 
                     PartyIdInfo sourceParty = exchange.getProperty(IS_RTP_REQUEST, Boolean.class) ? channelRequest.getPayer().getPartyIdInfo() : channelRequest.getPayee().getPartyIdInfo();
@@ -174,7 +174,7 @@ public class LinksRoute extends RouteBuilder {
                     party.setKey(sourceParty.getPartyIdType().toString().toLowerCase());
                     party.setValue(sourceParty.getPartyIdentifier());
 
-                    Party[] sourceAccounts = new Party[]{ party };
+                    GsmaParty[] sourceAccounts = new GsmaParty[]{ party };
                     linksDTO.setStatus("active");
                     linksDTO.setMode("both");
                     linksDTO.setSourceAccountIdentifiers(sourceAccounts);

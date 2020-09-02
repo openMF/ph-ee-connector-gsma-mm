@@ -4,9 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
-import org.mifos.connector.common.mojaloop.type.IdentifierType;
-import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
-import org.mifos.connector.gsma.transfer.dto.Party;
+import org.mifos.connector.common.gsma.dto.GSMATransaction;
+import org.mifos.connector.common.gsma.dto.GsmaParty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,17 +23,17 @@ public class TransformRequestData implements Processor {
         TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
         GSMATransaction gsmaTransaction = new GSMATransaction();
 
-        Party msisdnCreditParty = new Party();
+        GsmaParty msisdnCreditParty = new GsmaParty();
         msisdnCreditParty.setKey(channelRequest.getPayee().getPartyIdInfo().getPartyIdType().toString().toLowerCase());
         msisdnCreditParty.setValue(channelRequest.getPayee().getPartyIdInfo().getPartyIdentifier());
 
-        Party[] creditParty = new Party[]{ msisdnCreditParty };
+        GsmaParty[] creditParty = new GsmaParty[]{ msisdnCreditParty };
 
-        Party msisdnDebitParty = new Party();
+        GsmaParty msisdnDebitParty = new GsmaParty();
         msisdnDebitParty.setKey(channelRequest.getPayer().getPartyIdInfo().getPartyIdType().toString().toLowerCase());
         msisdnDebitParty.setValue(channelRequest.getPayer().getPartyIdInfo().getPartyIdentifier());
 
-        Party[] debitParty = new Party[]{ msisdnDebitParty };
+        GsmaParty[] debitParty = new GsmaParty[]{ msisdnDebitParty };
 
         String amount = channelRequest.getAmount().getAmount();
         String currency = channelRequest.getAmount().getCurrency();

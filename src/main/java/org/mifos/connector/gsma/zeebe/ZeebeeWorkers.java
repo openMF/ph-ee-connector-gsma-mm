@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.zeebe.client.ZeebeClient;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.QuoteSwitchRequestDTO;
-import org.mifos.connector.common.mojaloop.dto.QuoteSwitchResponseDTO;
 import org.mifos.connector.common.mojaloop.type.AmountType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

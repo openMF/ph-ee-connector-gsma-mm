@@ -3,7 +3,7 @@ package org.mifos.connector.gsma;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
+import org.mifos.connector.gsma.auth.AccessTokenStore;
 import org.mifos.connector.gsma.zeebe.ZeebeProcessStarter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

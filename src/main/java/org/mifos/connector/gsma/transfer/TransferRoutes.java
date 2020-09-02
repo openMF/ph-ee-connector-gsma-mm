@@ -5,8 +5,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
-import org.mifos.connector.gsma.auth.dto.AccessTokenStore;
-import org.mifos.connector.gsma.transfer.dto.RequestStateDTO;
+import org.mifos.connector.common.gsma.dto.RequestStateDTO;
+import org.mifos.connector.gsma.auth.AccessTokenStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +97,6 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader("X-CorrelationID", simple("${exchangeProperty."+ CORRELATION_ID +"}"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setBody(exchange -> exchange.getProperty(GSMA_CHANNEL_REQUEST))
-                .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
                 .toD(BaseURL + "/transactions/type" + "/${exchangeProperty."+TRANSACTION_TYPE+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 

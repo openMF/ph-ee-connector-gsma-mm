@@ -7,10 +7,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.support.DefaultExchange;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
+import org.mifos.connector.common.gsma.dto.GsmaParty;
+import org.mifos.connector.common.gsma.dto.LinksDTO;
 import org.mifos.connector.common.mojaloop.dto.PartyIdInfo;
-import org.mifos.connector.gsma.account.dto.LinksDTO;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
-import org.mifos.connector.gsma.transfer.dto.Party;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +65,7 @@ public class LinksWorkers {
                     correlationIDStore.addMapping(exchange.getProperty(CORRELATION_ID, String.class), exchange.getProperty(TRANSACTION_CORRELATION_ID, String.class));
 
                     TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
-                    Party party = new Party();
+                    GsmaParty party = new GsmaParty();
                     LinksDTO linksDTO = new LinksDTO();
 
                     PartyIdInfo sourceParty = exchange.getProperty(IS_RTP_REQUEST, Boolean.class) ? channelRequest.getPayer().getPartyIdInfo() : channelRequest.getPayee().getPartyIdInfo();
@@ -74,7 +74,7 @@ public class LinksWorkers {
                     party.setKey(sourceParty.getPartyIdType().toString().toLowerCase());
                     party.setValue(sourceParty.getPartyIdentifier());
 
-                    Party[] sourceAccounts = new Party[]{ party };
+                    GsmaParty[] sourceAccounts = new GsmaParty[]{ party };
                     linksDTO.setStatus("active");
                     linksDTO.setMode("both");
                     linksDTO.setSourceAccountIdentifiers(sourceAccounts);

@@ -1,6 +1,6 @@
 camel:
   server-port: ${PORT:5000}
-  host: "" # Host URL for callback
+  host: "https://webhook.site/0d1bcf85-f42a-462e-809f-b1d4dca2a0cc" # Host URL for callback
   springboot:
     main-run-controller: true
   dataformat:

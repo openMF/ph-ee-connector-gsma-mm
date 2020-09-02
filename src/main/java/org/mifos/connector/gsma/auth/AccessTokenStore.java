@@ -1,4 +1,4 @@
-package org.mifos.connector.gsma.auth.dto;
+package org.mifos.connector.gsma.auth;
 
 import org.springframework.stereotype.Component;
 

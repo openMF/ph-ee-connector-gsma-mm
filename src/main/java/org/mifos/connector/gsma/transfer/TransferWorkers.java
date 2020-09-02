@@ -6,7 +6,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.support.DefaultExchange;
-import org.mifos.connector.gsma.transfer.dto.GSMATransaction;
+import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +47,7 @@ public class TransferWorkers {
                 .handler((client, job) -> {
                     logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
                     Map<String, Object> variables = job.getVariablesAsMap();
+                    variables.put(TRANSFER_RETRY_COUNT, -1);
 
                     Exchange exchange = new DefaultExchange(camelContext);
                     exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
