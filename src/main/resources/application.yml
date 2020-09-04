@@ -28,5 +28,6 @@ gsma:
   api:
     host: https://sandbox.mobilemoneyapi.io/oauth/simulator/v1.1/mm
     account: /accounts
+    channel: #Add Channel Host
 
 dfspids: "DFSPID"

@@ -53,5 +53,6 @@ public class CamelProperties {
     public static final String QUOTE_RESPONSE = "quoteResponse";
     public static final String QUOTE_REQUEST_BODY = "quoteRequestBody";
     public static final String GSMA_CHANNEL_REQUEST = "gsmaChannelRequest";
+    public static final String RECEIVING_TENANT = "receivingTenant";
 
 }

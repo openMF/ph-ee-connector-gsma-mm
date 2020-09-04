@@ -39,6 +39,9 @@ public class TransactionStateRoute extends RouteBuilder {
     @Value("${gsma.api.host}")
     private String BaseURL;
 
+    @Value("${gsma.api.channel}")
+    private String ChannelURL;
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
@@ -106,6 +109,13 @@ public class TransactionStateRoute extends RouteBuilder {
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
                 .toD(BaseURL + "/requeststates" + "/${exchangeProperty."+SERVER_CORRELATION+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
+
+
+        from("direct:get-transaction-state-channel")
+                .id("get-transaction-state")
+                .removeHeader("*")
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .toD(ChannelURL + "channel/requeststates" + "/${exchangeProperty."+SERVER_CORRELATION+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Error route handler

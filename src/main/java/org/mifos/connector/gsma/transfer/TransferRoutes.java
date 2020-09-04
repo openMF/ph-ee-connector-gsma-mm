@@ -41,6 +41,9 @@ public class TransferRoutes extends RouteBuilder {
     @Value("${camel.host}")
     private String HostURL;
 
+    @Value("${gsma.api.channel}")
+    private String ChannelURL;
+
     @Autowired
     private CorrelationIDStore correlationIDStore;
 
@@ -59,7 +62,7 @@ public class TransferRoutes extends RouteBuilder {
                 .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on")
                 .log(LoggingLevel.INFO, "Moving on to API call")
-                .to("direct:commit-transaction")
+                .to("direct:send-request-to-payee-route")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
                 .to("direct:transaction-response-handler");
 
@@ -117,6 +120,17 @@ public class TransferRoutes extends RouteBuilder {
                         .setProperty(TRANSACTION_FAILED, constant(true))
                 .end()
                 .process(transferResponseProcessor);
+
+
+        from("direct:send-request-to-payee-route")
+                .removeHeader("*")
+                .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+                .setHeader("Platform-TenantId", simple("${exchangeProperty."+ RECEIVING_TENANT +"}"))
+                .setHeader("Content-Type", constant("application/json"))
+                .setBody(exchange -> exchange.getProperty(GSMA_CHANNEL_REQUEST))
+                .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
+                .toD(ChannelURL + "/channel/gsma/deposit" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                .log(LoggingLevel.INFO, "Channel API called, response: ${body}");
 
     }
 }
