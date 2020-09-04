@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_0jj4tbk" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.9.1">
-  <bpmn:process id="gsma_base_transaction" isExecutable="true">
+  <bpmn:process id="gsma_base_transaction-DFSPID" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1" name="Start Payment">
       <bpmn:outgoing>Flow_1iz4su9</bpmn:outgoing>
     </bpmn:startEvent>
@@ -183,7 +183,7 @@
     <bpmn:sequenceFlow id="Flow_0o49cl4" sourceRef="Gateway_0tb8j6l" targetRef="Activity_1d2j8yq" />
     <bpmn:serviceTask id="Activity_1m5hpl9" name="Party ID lookup and&#10;Validate account" implementation="##WebService">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="party-lookup-local-ibank-usa" />
+        <zeebe:taskDefinition type="party-lookup-local-DFSPID" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1iz4su9</bpmn:incoming>
       <bpmn:outgoing>Flow_0r7t1vh</bpmn:outgoing>
@@ -215,7 +215,13 @@
     </bpmn:extensionElements>
   </bpmn:message>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="gsma_base_transaction">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="gsma_base_transaction-DFSPID">
+      <bpmndi:BPMNEdge id="Flow_1oiw1si_di" bpmnElement="Flow_1oiw1si">
+        <di:waypoint x="1140" y="380" />
+        <di:waypoint x="1140" y="430" />
+        <di:waypoint x="1260" y="430" />
+        <di:waypoint x="1260" y="487" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_06fadz1_di" bpmnElement="Flow_06fadz1">
         <di:waypoint x="785" y="527" />
         <di:waypoint x="840" y="527" />
@@ -360,12 +366,6 @@
         <di:waypoint x="530" y="527" />
         <di:waypoint x="580" y="527" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1oiw1si_di" bpmnElement="Flow_1oiw1si">
-        <di:waypoint x="1140" y="380" />
-        <di:waypoint x="1140" y="430" />
-        <di:waypoint x="1260" y="430" />
-        <di:waypoint x="1260" y="487" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1" bioc:stroke="rgb(67, 160, 71)" bioc:fill="rgb(200, 230, 201)">
         <dc:Bounds x="172" y="509" width="36" height="36" />
         <bpmndi:BPMNLabel>
@@ -384,6 +384,9 @@
       <bpmndi:BPMNShape id="Activity_0j1hzqb_di" bpmnElement="Activity_15fdjou" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
         <dc:Bounds x="580" y="487" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0xf4k19_di" bpmnElement="Gateway_0xf4k19" isMarkerVisible="true">
+        <dc:Bounds x="625" y="325" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1jlz33e_di" bpmnElement="Gateway_1jlz33e" isMarkerVisible="true">
         <dc:Bounds x="735" y="502" width="50" height="50" />
       </bpmndi:BPMNShape>
@@ -398,6 +401,9 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1vrjgo0_di" bpmnElement="Activity_1u14nb2" bioc:stroke="rgb(30, 136, 229)" bioc:fill="rgb(187, 222, 251)">
         <dc:Bounds x="1720" y="487" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_07i40gr_di" bpmnElement="Gateway_07i40gr" isMarkerVisible="true">
+        <dc:Bounds x="1275" y="315" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0yilwue_di" bpmnElement="Event_0yilwue" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
         <dc:Bounds x="1872" y="212" width="36" height="36" />
@@ -447,14 +453,8 @@
       <bpmndi:BPMNShape id="Activity_1m5hpl9_di" bpmnElement="Activity_1m5hpl9" bioc:stroke="rgb(142, 36, 170)" bioc:fill="rgb(225, 190, 231)">
         <dc:Bounds x="270" y="487" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_07i40gr_di" bpmnElement="Gateway_07i40gr" isMarkerVisible="true">
-        <dc:Bounds x="1275" y="315" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0w8czjf_di" bpmnElement="Activity_0w8czjf" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
         <dc:Bounds x="1090" y="300" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0xf4k19_di" bpmnElement="Gateway_0xf4k19" isMarkerVisible="true">
-        <dc:Bounds x="625" y="325" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1v1uakj_di" bpmnElement="Event_1kcsjsf">
         <dc:Bounds x="1282" y="469" width="36" height="36" />
