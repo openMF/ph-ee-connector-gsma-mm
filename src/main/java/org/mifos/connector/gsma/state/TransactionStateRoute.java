@@ -85,7 +85,7 @@ public class TransactionStateRoute extends RouteBuilder {
                         exchange.setProperty(SERVER_CORRELATION, serverCorrelationID);
                         logger.info("Server CorrelationID: " + serverCorrelationID);
                     })
-                    .to("direct:get-transaction-state")
+                    .to("direct:get-transaction-state-channel")
                     .log(LoggingLevel.INFO, "Transaction State API response: ${body}")
                     .choice()
                     .when(header("CamelHttpResponseCode").isEqualTo("200"))
@@ -112,7 +112,7 @@ public class TransactionStateRoute extends RouteBuilder {
 
 
         from("direct:get-transaction-state-channel")
-                .id("get-transaction-state")
+                .id("get-transaction-state-channel")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .toD(ChannelURL + "channel/requeststates" + "/${exchangeProperty."+SERVER_CORRELATION+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");

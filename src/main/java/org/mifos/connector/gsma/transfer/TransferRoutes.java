@@ -128,6 +128,7 @@ public class TransferRoutes extends RouteBuilder {
                 .setHeader("Platform-TenantId", simple("${exchangeProperty."+ RECEIVING_TENANT +"}"))
                 .setHeader("Content-Type", constant("application/json"))
                 .setBody(exchange -> exchange.getProperty(GSMA_CHANNEL_REQUEST))
+                .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
                 .toD(ChannelURL + "/channel/gsma/deposit" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.INFO, "Channel API called, response: ${body}");
