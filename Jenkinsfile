@@ -9,8 +9,8 @@ pipeline {
         }
         stage('docker') {
             steps {
-                sh 'docker build . -t paymenthubee.azurecr.io/phee/connector-mojaloop-java'
-                sh 'docker push paymenthubee.azurecr.io/phee/connector-mojaloop-java'
+                sh 'docker build . -t paymenthubee.azurecr.io/phee/connector-gsma-mm'
+                sh 'docker push paymenthubee.azurecr.io/phee/connector-gsma-mm'
             }
         }
     }
