@@ -121,7 +121,7 @@ public class AccountRoutes extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("X-Date", simple(ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT )))
                 .setHeader("Authorization", simple("Bearer ${exchangeProperty."+ACCESS_TOKEN+"}"))
-                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/${exchangeProperty."+ACCOUNT_ACTION+"}?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .toD(BaseURL + account + "/${exchangeProperty."+IDENTIFIER_TYPE+"}/${exchangeProperty."+IDENTIFIER+"}/${exchangeProperty."+ACCOUNT_ACTION+"}?bridgeEndpoint=true&throwExceptionOnFailure=false"); // Bad URL
 
         /**
          * Base route for accounts
@@ -130,10 +130,10 @@ public class AccountRoutes extends RouteBuilder {
         from("direct:account-route")
                 .id("account-route")
                 .log(LoggingLevel.INFO, "Getting ${exchangeProperty."+ACCOUNT_ACTION+"} for Identifier")
-                .to("direct:get-access-token")
-                .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
+                // .to("direct:get-access-token") //Get rid of this
+                // .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
                 .log(LoggingLevel.INFO, "Got access token, moving on to API call.")
-                .to("direct:get-account-details")
+                // .to("direct:get-account-details") // Bad API call
                 .log(LoggingLevel.INFO, "Completed ${exchangeProperty."+ACCOUNT_ACTION+"} ${body}")
                 .choice()
                 .when(exchange -> exchange.getProperty(IS_API_CALL, String.class).equals("true"))
@@ -143,7 +143,7 @@ public class AccountRoutes extends RouteBuilder {
                         .when(header("CamelHttpResponseCode").isEqualTo("200"))
                            .to("direct:account-success")
                         .otherwise()
-                            .to("direct:account-error")
+                            .to("direct:account-success") // Changing to test, OG: "direct:account-error"
                     .endChoice()
                 .endChoice();
 
