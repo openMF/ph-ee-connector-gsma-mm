@@ -63,6 +63,7 @@ public class TransferRoutes extends RouteBuilder {
                 // .log(LoggingLevel.INFO, "Got access token, moving on")
                 .log(LoggingLevel.INFO, "Moving on to API call")
                 .to("direct:send-request-to-payee-route")
+                .log(LoggingLevel.INFO, "Status: ${header.CamelHttpResponseCode}")
                 .log(LoggingLevel.INFO, "Transaction API response: ${body}")
                 .to("direct:transaction-response-handler");
 
@@ -72,7 +73,7 @@ public class TransferRoutes extends RouteBuilder {
         from("direct:transaction-response-handler")
                 .id("transaction-response-handler")
                 .choice()
-                .when(header("CamelHttpResponseCode").isEqualTo("202"))
+                .when(header("CamelHttpResponseCode").isEqualTo("200"))
                     .log(LoggingLevel.INFO, "Transaction request successful")
                     .unmarshal().json(JsonLibrary.Jackson, RequestStateDTO.class)
                     .process(exchange -> {

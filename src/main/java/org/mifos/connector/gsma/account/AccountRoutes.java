@@ -96,7 +96,7 @@ public class AccountRoutes extends RouteBuilder {
          */
         from("direct:account-status-handler")
                 .id("account-status-handler")
-                .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponseDTO.class)
+                // .unmarshal().json(JsonLibrary.Jackson, AccountStatusResponseDTO.class)
                 .log(LoggingLevel.INFO, "Inside account status handler")
                 .setProperty(PARTY_LOOKUP_FAILED, constant(false))
                 .process(accountResponseProcessor);
