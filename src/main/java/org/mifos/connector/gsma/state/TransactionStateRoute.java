@@ -73,9 +73,9 @@ public class TransactionStateRoute extends RouteBuilder {
         from("direct:transaction-state")
                 .id("transaction-state")
                 .log(LoggingLevel.INFO, "Transaction State route started")
-                .to("direct:get-access-token")
-                .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
-                .log(LoggingLevel.INFO, "Got access token, moving on.")
+                // .to("direct:get-access-token")
+                // .process(exchange -> exchange.setProperty(ACCESS_TOKEN, accessTokenStore.getAccessToken()))
+                // .log(LoggingLevel.INFO, "Got access token, moving on.")
                 .choice()
                 .when(exchange -> correlationIDStore.isClientCorrelationPresent(exchange.getProperty(CORRELATION_ID, String.class)))
                     .log(LoggingLevel.INFO, "Getting Server Correlation ID")
@@ -115,7 +115,8 @@ public class TransactionStateRoute extends RouteBuilder {
                 .id("get-transaction-state-channel")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
-                .toD(ChannelURL + "channel/requeststates" + "/${exchangeProperty."+SERVER_CORRELATION+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
+                .setHeader("Platform-TenantId", simple("${exchangeProperty."+ RECEIVING_TENANT +"}"))
+                .toD(ChannelURL + "/channel/requeststates" + "/${exchangeProperty."+SERVER_CORRELATION+"}" + "?bridgeEndpoint=true&throwExceptionOnFailure=false");
 
         /**
          * Error route handler
