@@ -109,11 +109,12 @@ public class TransferWorkers {
                     GSMATransaction gsmaPayeeRequest = new GSMATransaction();
                     variables.put(TRANSFER_RETRY_COUNT, -1);
                     // Do currency converted values instead of original values
-                    String converetdAmount = gsmaChannelRequest.getAmount();
-                    String convertedCurrency = gsmaChannelRequest.getCurrency();
+                    String convertedAmount = gsmaChannelRequest.getInternationalTransferInformation().getReceivingAmount();
+                    String convertedCurrency = gsmaChannelRequest.getInternationalTransferInformation().getReceivingCurrency();
 
-                    gsmaPayeeRequest.setDescriptionText("Origianl Amount = " + gsmaChannelRequest.getAmount() + ", currency = " + gsmaChannelRequest.getCurrency());
-                    gsmaPayeeRequest.setAmount(converetdAmount);
+                    gsmaPayeeRequest.setDescriptionText("Original Amount = " + gsmaChannelRequest.getAmount() + ", currency = " + gsmaChannelRequest.getCurrency());
+                    gsmaPayeeRequest.setDescriptionText("Converted Amount = " + convertedAmount + ", currency = " + convertedCurrency);
+                    gsmaPayeeRequest.setAmount(convertedAmount);
                     gsmaPayeeRequest.setCurrency(convertedCurrency);
                     gsmaPayeeRequest.setRequestingOrganisationTransactionReference(variables.get("transactionId").toString());
                     gsmaPayeeRequest.setCreditParty(gsmaChannelRequest.getCreditParty());
