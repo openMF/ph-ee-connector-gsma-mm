@@ -112,8 +112,9 @@ public class TransferWorkers {
                     String convertedAmount = gsmaChannelRequest.getInternationalTransferInformation().getReceivingAmount();
                     String convertedCurrency = gsmaChannelRequest.getInternationalTransferInformation().getReceivingCurrency();
 
-                    gsmaPayeeRequest.setDescriptionText("Original Amount = " + gsmaChannelRequest.getAmount() + ", currency = " + gsmaChannelRequest.getCurrency());
-                    gsmaPayeeRequest.setDescriptionText("Converted Amount = " + convertedAmount + ", currency = " + convertedCurrency);
+                    gsmaPayeeRequest.setDescriptionText("Original Amount = " + gsmaChannelRequest.getAmount() + ", currency = " + gsmaChannelRequest.getCurrency()
+                           +":::: Converted Amount = " + convertedAmount + ", currency = " + convertedCurrency);
+                    logger.info(gsmaPayeeRequest.getDescriptionText());
                     gsmaPayeeRequest.setAmount(convertedAmount);
                     gsmaPayeeRequest.setCurrency(convertedCurrency);
                     gsmaPayeeRequest.setRequestingOrganisationTransactionReference(variables.get("transactionId").toString());
