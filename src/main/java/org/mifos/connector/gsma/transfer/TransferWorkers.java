@@ -129,6 +129,13 @@ public class TransferWorkers {
                     exchange.setProperty(RECEIVING_TENANT, gsmaChannelRequest.getReceivingLei());
                     exchange.setProperty(CORRELATION_ID, variables.get("transactionId"));
 
+                    variables.put(RECEIVING_AMOUNT, convertedAmount);
+                    variables.put(RECEIVING_CURRENCY, convertedCurrency);
+                    variables.put(SENDER_AMOUNT, gsmaChannelRequest.getAmount());
+                    variables.put(SENDER_CURRENCY, gsmaChannelRequest.getCurrency());
+                    variables.put(CURRENCY_PAIR, gsmaChannelRequest.getInternationalTransferInformation().getCurrencyPair());
+                    variables.put(CURRENCY_PAIR_RATE, gsmaChannelRequest.getInternationalTransferInformation().getCurrencyPairRate());
+
                     producerTemplate.send("direct:transfer-route", exchange);
 
                     client.newCompleteCommand(job.getKey())
