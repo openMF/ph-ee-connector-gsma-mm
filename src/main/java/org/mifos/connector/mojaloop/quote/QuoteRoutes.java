@@ -89,6 +89,13 @@ public class QuoteRoutes extends ErrorHandlerRouteBuilder {
 
                             zeebeProcessStarter.startZeebeWorkflow(quoteFlow.replace("{tenant}", tenantId),
                                     variables -> {
+                                        variables.put("initiator", request.getTransactionType().getInitiator());
+                                        variables.put("initiatorType", request.getTransactionType().getInitiatorType());
+                                        variables.put("scenario", request.getTransactionType().getScenario());
+                                        variables.put("amount", new FspMoneyData(request.getAmount().getAmountDecimal(), request.getAmount().getCurrency()));
+                                        variables.put("transactionId", request.getTransactionId());
+                                        variables.put("transferCode", request.getTransactionRequestId());    // TODO is that right?
+
                                         variables.put(QUOTE_ID, request.getQuoteId());
                                         variables.put(FSPIOP_SOURCE.headerName(), payee.getFspId());
                                         variables.put(FSPIOP_DESTINATION.headerName(), request.getPayer().getPartyIdInfo().getFspId());
