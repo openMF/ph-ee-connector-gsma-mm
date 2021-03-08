@@ -1,5 +1,6 @@
 camel:
-  server-port: 5000
+  server-port: ${PORT:5000}
+  host: "https://webhook.site/0d1bcf85-f42a-462e-809f-b1d4dca2a0cc" # Host URL for callback
   springboot:
     main-run-controller: true
   dataformat:
@@ -8,33 +9,25 @@ camel:
 
 bpmn:
   flows:
-    party-lookup: "PayeePartyLookup-{tenant}"
-    quote: "PayeeQuoteTransfer-{tenant}"
-    transaction-request: "PayerTransactionRequest-{tenant}"
+    some-flow: "SomeFlow-DFSPID"
 
 zeebe:
   client:
     max-execution-threads: 100
-    number-of-workers: 15
+    number-of-workers: 8
     evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
+    ttl: 30000
   broker:
-    contactpoint: "ph-ee-zeebe:26500"
+    contactpoint: "127.0.0.1:26500"
 
-connector:
-  ilp-secret: h4on38bsDjKiat2783gnklgafikmeuu5123kpobb7jm99
-
-mojaloop:
-  enabled: true
-
-switch:
-  quotes-host: http://40.114.81.46
-  quote-service: quoting-service.local
-  als-host: http://40.114.81.46
-  account-lookup-service: account-lookup-service.local
-  transfers-host: http://40.114.81.46
-  transfer-service: ml-api-adapter.local
-  transactions-host: http://40.114.81.46
-  transaction-request-service: transaction-request-service.local
-  oracle-host: http://account-oracle.mifos.io:4100
+gsma:
+  auth:
+    host: https://sandbox.mobilemoneyapi.io/v1/oauth/accesstoken
+    client-key: bBvcGtIhyfAPNTMwuvACLyVrzcaTsyXR
+    client-secret: PAL6ekftxxg02O58
+  api:
+    host: https://sandbox.mobilemoneyapi.io/oauth/simulator/v1.1/mm
+    account: /accounts
+    channel: http://ph-ee-connector-channel
 
 dfspids: "DFSPID"

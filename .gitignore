@@ -1,4 +1,6 @@
+### Build files ###
 target/
+src/main/java/org/mifos/connector/common
 
 ### STS ###
 .apt_generated
@@ -15,13 +17,7 @@ target/
 *.iml
 *.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-
 ### VS Code ###
 .vscode/
+
+*.orig
