@@ -1,5 +1,6 @@
 camel:
-  server-port: 5000
+  server-port: ${PORT:5000}
+  host: "https://webhook.site/0d1bcf85-f42a-462e-809f-b1d4dca2a0cc" # Host URL for callback
   springboot:
     main-run-controller: true
   dataformat:
@@ -13,9 +14,20 @@ bpmn:
 zeebe:
   client:
     max-execution-threads: 100
-    number-of-workers: 14
+    number-of-workers: 8
     evenly-allocated-max-jobs: "#{${zeebe.client.max-execution-threads} / ${zeebe.client.number-of-workers}}"
+    ttl: 30000
   broker:
-    contactpoint: "ph-ee-zeebe:26500"
+    contactpoint: "127.0.0.1:26500"
+
+gsma:
+  auth:
+    host: https://sandbox.mobilemoneyapi.io/v1/oauth/accesstoken
+    client-key: bBvcGtIhyfAPNTMwuvACLyVrzcaTsyXR
+    client-secret: PAL6ekftxxg02O58
+  api:
+    host: https://sandbox.mobilemoneyapi.io/oauth/simulator/v1.1/mm
+    account: /accounts
+    channel: http://ph-ee-connector-channel
 
 dfspids: "DFSPID"
