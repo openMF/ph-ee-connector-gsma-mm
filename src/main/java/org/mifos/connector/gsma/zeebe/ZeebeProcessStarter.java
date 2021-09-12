@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.zeebe;
 
-import io.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.Exchange;
 import org.mifos.connector.gsma.camel.config.CamelProperties;
 import org.slf4j.Logger;

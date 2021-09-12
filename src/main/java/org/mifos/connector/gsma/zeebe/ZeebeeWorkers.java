@@ -1,7 +1,7 @@
 package org.mifos.connector.gsma.zeebe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.ZeebeClient;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.gsma.dto.GSMATransaction;
 import org.mifos.connector.common.mojaloop.dto.QuoteSwitchRequestDTO;

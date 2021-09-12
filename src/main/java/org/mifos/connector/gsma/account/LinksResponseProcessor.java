@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.account;
 
-import io.zeebe.client.ZeebeClient;
+import io.camunda.zeebe.client.ZeebeClient;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.mifos.connector.gsma.transfer.CorrelationIDStore;
