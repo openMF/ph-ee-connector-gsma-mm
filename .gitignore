@@ -1,6 +1,9 @@
 ### Build files ###
 target/
 src/main/java/org/mifos/connector/common
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
 
 ### STS ###
 .apt_generated
