@@ -1,5 +1,5 @@
 FROM openjdk:13
 
-COPY target/*.jar .
+COPY build/libs/*.jar .
 CMD java -jar *.jar
 
