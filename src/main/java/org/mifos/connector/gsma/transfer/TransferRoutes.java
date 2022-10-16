@@ -126,10 +126,13 @@ public class TransferRoutes extends RouteBuilder {
         from("direct:send-request-to-payee-route")
                 .removeHeader("*")
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-                .setHeader("Platform-TenantId", simple("${exchangeProperty."+ RECEIVING_TENANT +"}"))
+                //.setHeader("Platform-TenantId", simple("${exchangeProperty."+ RECEIVING_TENANT +"}"))
                 .setHeader("Content-Type", constant("application/json"))
+                .process(exchange -> {
+                    exchange.getIn().setHeader("Platform-TenantId",exchange.getProperty("payeeTenantId"));
+                    logger.info("Tenant ID: {}", exchange.getProperty("payeeTenantId"));
+                })
                 .setBody(exchange -> exchange.getProperty(GSMA_CHANNEL_REQUEST))
-                .marshal().json(JsonLibrary.Jackson)
                 .log(LoggingLevel.INFO, "Transaction Request Body: ${body}")
                 .toD(ChannelURL + "/channel/gsma/deposit" + "?bridgeEndpoint=true&throwExceptionOnFailure=false")
                 .log(LoggingLevel.INFO, "Channel API called, response: ${body}");

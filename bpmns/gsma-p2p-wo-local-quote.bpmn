@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_0jj4tbk" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.9.1">
-  <bpmn:process id="gsma_base_transaction-DFSPID" isExecutable="true">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:bioc="http://bpmn.io/schema/bpmn/biocolor/1.0" id="Definitions_0jj4tbk" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Zeebe Modeler" exporterVersion="0.11.0">
+  <bpmn:process id="gsma_base_transaction-lion" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1" name="Start Payment">
       <bpmn:outgoing>Flow_1iz4su9</bpmn:outgoing>
     </bpmn:startEvent>
@@ -183,7 +183,7 @@
     <bpmn:sequenceFlow id="Flow_0o49cl4" sourceRef="Gateway_0tb8j6l" targetRef="Activity_1d2j8yq" />
     <bpmn:serviceTask id="Activity_1m5hpl9" name="Party ID lookup and&#10;Validate account" implementation="##WebService">
       <bpmn:extensionElements>
-        <zeebe:taskDefinition type="party-lookup-local-DFSPID" />
+        <zeebe:taskDefinition type="party-lookup-local-lion" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1iz4su9</bpmn:incoming>
       <bpmn:outgoing>Flow_0r7t1vh</bpmn:outgoing>
@@ -215,7 +215,7 @@
     </bpmn:extensionElements>
   </bpmn:message>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="gsma_base_transaction-DFSPID">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="gsma_base_transaction-lion">
       <bpmndi:BPMNEdge id="Flow_1oiw1si_di" bpmnElement="Flow_1oiw1si">
         <di:waypoint x="1140" y="380" />
         <di:waypoint x="1140" y="430" />
@@ -256,7 +256,9 @@
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0s5yx0e_di" bpmnElement="Flow_0s5yx0e">
         <di:waypoint x="1035" y="527" />
-        <di:waypoint x="1090" y="527" />
+        <di:waypoint x="1063" y="527" />
+        <di:waypoint x="1063" y="530" />
+        <di:waypoint x="1090" y="530" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0ygr2i6_di" bpmnElement="Flow_0ygr2i6">
         <di:waypoint x="1650" y="502" />
@@ -343,7 +345,9 @@
         <di:waypoint x="1385" y="527" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0vfzj5k_di" bpmnElement="Flow_0vfzj5k">
-        <di:waypoint x="1190" y="527" />
+        <di:waypoint x="1190" y="530" />
+        <di:waypoint x="1210" y="530" />
+        <di:waypoint x="1210" y="527" />
         <di:waypoint x="1230" y="527" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0z3yk8q_di" bpmnElement="Flow_0z3yk8q">
@@ -394,7 +398,7 @@
         <dc:Bounds x="1230" y="487" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1l2g95h_di" bpmnElement="Activity_0d2oc9n" bioc:stroke="rgb(229, 57, 53)" bioc:fill="rgb(255, 205, 210)">
-        <dc:Bounds x="1090" y="487" width="100" height="80" />
+        <dc:Bounds x="1090" y="490" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_1sp7hyy_di" bpmnElement="Gateway_1sp7hyy" isMarkerVisible="true">
         <dc:Bounds x="1385" y="502" width="50" height="50" />

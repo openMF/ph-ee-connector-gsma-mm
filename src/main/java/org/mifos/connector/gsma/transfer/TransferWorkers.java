@@ -14,10 +14,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.time.Duration;
 import java.util.Map;
 
 import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSACTION_FAILED;
 import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.TRANSFER_RETRY_COUNT;
+import static org.mifos.connector.gsma.zeebe.ZeebeMessages.TRANSFER_RESPONSE;
 
 @Component
 public class TransferWorkers {
@@ -55,10 +58,20 @@ public class TransferWorkers {
                     exchange.setProperty(GSMA_CHANNEL_REQUEST, variables.get("gsmaChannelRequest"));
                     exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));
                     exchange.setProperty(TRANSACTION_TYPE, variables.get(TRANSACTION_TYPE));
+                    exchange.setProperty(RECEIVING_TENANT,variables.get("tenantId"));
+                    exchange.setProperty("payeeTenantId", variables.get("payeeTenantId"));
                     exchange.setProperty(GSMA_AUTHORIZATION_CODE, variables.get(GSMA_AUTHORIZATION_CODE));
-
+                    logger.info("Payee Tenant ID: {}", variables.get("payeeTenantId"));
                     producerTemplate.send("direct:transfer-route", exchange);
-
+                    variables.put(TRANSACTION_FAILED,false);
+                    //added to pass the transaction request api not found error
+                    variables.put("payeeTenantId",exchange.getProperty("payeeTenantId"));
+                    zeebeClient.newPublishMessageCommand()
+                            .messageName(TRANSFER_RESPONSE)
+                            .correlationKey(exchange.getProperty(CORRELATION_ID, String.class))
+                            .timeToLive(Duration.ofMillis(30000))
+                            .variables(variables)
+                            .send();
                     client.newCompleteCommand(job.getKey())
                             .variables(variables)
                             .send()
@@ -80,7 +93,7 @@ public class TransferWorkers {
                     exchange.setProperty(TRANSACTION_TYPE, variables.get(TRANSACTION_TYPE));
                     exchange.setProperty(QUOTE_ID, variables.get(QUOTE_ID));
                     exchange.setProperty(QUOTE_REFERENCE, variables.get(QUOTE_REFERENCE));
-
+                    exchange.setProperty("payeeTenantId", variables.get("payeeTenantId"));
 
                     GSMATransaction gsmaTransaction = objectMapper.readValue((String) variables.get("gsmaChannelRequest"), GSMATransaction.class);
                     gsmaTransaction.getInternationalTransferInformation().setQuoteId((String) variables.get(QUOTE_ID));
@@ -89,7 +102,7 @@ public class TransferWorkers {
                     exchange.setProperty(GSMA_CHANNEL_REQUEST, gsmaTransaction);
 
                     producerTemplate.send("direct:transfer-route", exchange);
-
+                    variables.put("payeeTenantId",exchange.getProperty("payeeTenantId"));
                     client.newCompleteCommand(job.getKey())
                             .variables(variables)
                             .send()

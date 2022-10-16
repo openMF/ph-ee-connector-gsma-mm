@@ -55,17 +55,15 @@ public class AccountWorkers {
                     exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
                     exchange.setProperty(ACCOUNT_ACTION, "status");
                     exchange.setProperty(IS_RTP_REQUEST, variables.get(IS_RTP_REQUEST));
-
                     TransactionChannelRequestDTO channelRequest = objectMapper.readValue(exchange.getProperty(CHANNEL_REQUEST, String.class), TransactionChannelRequestDTO.class);
                     PartyIdInfo requestedParty = exchange.getProperty(IS_RTP_REQUEST, Boolean.class) ? channelRequest.getPayer().getPartyIdInfo() : channelRequest.getPayee().getPartyIdInfo();
-
+                    logger.info("Payee Tenant ID: {}", variables.get("payeeTenantId"));
                     exchange.setProperty(IDENTIFIER_TYPE, requestedParty.getPartyIdType().toString().toLowerCase());
                     exchange.setProperty(IDENTIFIER, requestedParty.getPartyIdentifier());
 
                     exchange.setProperty(IS_API_CALL, "false");
 
                     producerTemplate.send("direct:account-route", exchange);
-
                     client.newCompleteCommand(job.getKey())
                             .variables(variables)
                             .send()
