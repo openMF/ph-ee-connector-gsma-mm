@@ -1,5 +1,7 @@
 package org.mifos.connector.gsma.transfer;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -7,16 +9,10 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 @Component
+@Getter
+@Setter
 public class CorrelationIDStore {
     HashMap<String, String> correlation = new HashMap<>();
-
-    public HashMap<String, String> getCorrelation() {
-        return correlation;
-    }
-
-    public void setCorrelation(HashMap<String, String> correlation) {
-        this.correlation = correlation;
-    }
 
     public void addMapping(String serverCorrelation, String clientCorrelation) {
         correlation.put(serverCorrelation, clientCorrelation);
