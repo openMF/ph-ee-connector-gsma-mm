@@ -1,18 +1,13 @@
 package org.mifos.connector.gsma.zeebe;
 
 import io.camunda.zeebe.client.ZeebeClient;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.camel.Exchange;
-import org.mifos.connector.gsma.camel.config.CamelProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
 
 @Component
 public class ZeebeProcessStarter {
@@ -47,12 +42,8 @@ public class ZeebeProcessStarter {
         variables.putAll(extraVariables);
         // TODO: Add extra variables if required. Such as origin date.
 
-        zeebeClient.newCreateInstanceCommand()
-                .bpmnProcessId(workflowId)
-                .latestVersion() // .version(1)
-                .variables(variables)
-                .send()
-                .join();
+        zeebeClient.newCreateInstanceCommand().bpmnProcessId(workflowId).latestVersion() // .version(1)
+                .variables(variables).send().join();
 
         logger.info("zeebee workflow instance from process {} started", workflowId);
     }

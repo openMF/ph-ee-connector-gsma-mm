@@ -1,11 +1,11 @@
 package org.mifos.connector.gsma.auth;
 
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AccessTokenStore {
+
     public String accessToken;
     public LocalDateTime expiresOn;
 
@@ -31,10 +31,11 @@ public class AccessTokenStore {
     }
 
     public boolean isValid(LocalDateTime dateTime) {
-        if (dateTime.isBefore(expiresOn))
+        if (dateTime.isBefore(expiresOn)) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
 }
