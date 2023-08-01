@@ -1,29 +1,25 @@
 package org.mifos.connector.gsma.auth;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
 @Component
+@Getter
+@Setter
 public class AccessTokenStore {
-    public String accessToken;
-    public LocalDateTime expiresOn;
+    private String accessToken;
+    private LocalDateTime expiresOn;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public AccessTokenStore() {
         this.expiresOn = LocalDateTime.now();
-        System.out.println("ACCESS TOKEN STORE CREATED!");
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public LocalDateTime getExpiresOn() {
-        return expiresOn;
+        logger.info("ACCESS TOKEN STORE CREATED!");
     }
 
     public void setExpiresOn(int expires_in) {
@@ -36,5 +32,4 @@ public class AccessTokenStore {
         else
             return false;
     }
-
 }
