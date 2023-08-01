@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.mifos:ph-ee-connector-common:1.0.0-SNAPSHOT'
+    implementation 'org.mifos:ph-ee-connector-common:1.5.1-SNAPSHOT'
     implementation 'org.apache.camel.springboot:camel-spring-boot-starter:3.12.0'
     implementation 'org.apache.camel:camel-endpointdsl:3.4.0'
     implementation 'org.apache.camel:camel-jetty:3.4.0'
