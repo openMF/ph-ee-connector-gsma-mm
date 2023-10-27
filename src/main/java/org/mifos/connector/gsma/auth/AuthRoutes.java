@@ -1,5 +1,8 @@
 package org.mifos.connector.gsma.auth;
 
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
@@ -12,10 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
-import java.util.Base64;
 
 @Component
 public class AuthRoutes extends RouteBuilder {
@@ -40,9 +39,7 @@ public class AuthRoutes extends RouteBuilder {
         /**
          * Error handling route
          */
-        from("direct:access-token-error")
-                .id("access-token-error")
-                .unmarshal().json(JsonLibrary.Jackson, AuthErrorDTO.class)
+        from("direct:access-token-error").id("access-token-error").unmarshal().json(JsonLibrary.Jackson, AuthErrorDTO.class)
                 .process(exchange -> {
                     logger.error(exchange.getIn().getBody(AuthErrorDTO.class).getErrorMessage());
                     // TODO: Improve Error Handling
@@ -51,10 +48,9 @@ public class AuthRoutes extends RouteBuilder {
         /**
          * Save Access Token to AccessTokenStore
          */
-        from("direct:access-token-save")
-                .id("access-token-save")
-                .unmarshal().json(JsonLibrary.Jackson, AccessTokenDTO.class)
+        from("direct:access-token-save").id("access-token-save").unmarshal().json(JsonLibrary.Jackson, AccessTokenDTO.class)
                 .process(new Processor() {
+
                     @Override
                     public void process(Exchange exchange) throws Exception {
                         accessTokenStore.setAccessToken(exchange.getIn().getBody(AccessTokenDTO.class).getAccess_token());
@@ -66,34 +62,20 @@ public class AuthRoutes extends RouteBuilder {
         /**
          * Fetch Access Token from GSMA API
          */
-        from("direct:access-token-fetch")
-                .id("access-token-fetch")
-                .log(LoggingLevel.INFO, "Fetching access token")
+        from("direct:access-token-fetch").id("access-token-fetch").log(LoggingLevel.INFO, "Fetching access token")
                 .setHeader(Exchange.HTTP_METHOD, constant("POST"))
                 .setHeader("Authorization", simple("Basic " + createAuthHeader(clientKey, clientSecret)))
-                .setHeader("Content-Type", constant("application/x-www-form-urlencoded"))
-                .removeHeader(Exchange.HTTP_PATH)
-                .setBody(simple("grant_type=client_credentials"))
-                .toD(authUrl + "?bridgeEndpoint=true");
+                .setHeader("Content-Type", constant("application/x-www-form-urlencoded")).removeHeader(Exchange.HTTP_PATH)
+                .setBody(simple("grant_type=client_credentials")).toD(authUrl + "?bridgeEndpoint=true");
 
         /**
          * Access Token check validity and return value
          */
-        from("direct:get-access-token")
-                .id("get-access-token")
-                .choice()
-                    .when(exchange -> accessTokenStore.isValid(LocalDateTime.now()))
-                        .log("Access token valid. Continuing.")
-                    .otherwise()
-                        .log("Access token expired or not present")
-                        .to("direct:access-token-fetch")
-                        .choice()
-                            .when(header("CamelHttpResponseCode").isEqualTo("200"))
-                            .log("Access Token Fetch Successful")
-                            .to("direct:access-token-save")
-                        .otherwise()
-                            .log("Access Token Fetch Unsuccessful")
-                            .to("direct:access-token-error");
+        from("direct:get-access-token").id("get-access-token").choice().when(exchange -> accessTokenStore.isValid(LocalDateTime.now()))
+                .log("Access token valid. Continuing.").otherwise().log("Access token expired or not present")
+                .to("direct:access-token-fetch").choice().when(header("CamelHttpResponseCode").isEqualTo("200"))
+                .log("Access Token Fetch Successful").to("direct:access-token-save").otherwise().log("Access Token Fetch Unsuccessful")
+                .to("direct:access-token-error");
     }
 
     private String createAuthHeader(String key, String secret) {
@@ -101,7 +83,7 @@ public class AuthRoutes extends RouteBuilder {
         try {
             encodedAuth = Base64.getEncoder().encodeToString((key + ":" + secret).getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.debug(e.getMessage());
         }
         return encodedAuth;
     }
