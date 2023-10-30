@@ -71,7 +71,7 @@ public class AccountRoutes extends RouteBuilder {
                 .log(LoggingLevel.INFO, "Routing to account balance handler").to("direct:account-balance-handler")
                 .when(exchange -> exchange.getProperty(ACCOUNT_ACTION, String.class).equals("accountname"))
                 .log(LoggingLevel.INFO, "Routing to account name handler").to("direct:account-name-handler").otherwise()
-                .log(LoggingLevel.INFO, "No routing specified for this type of action.").process(exchange -> {}).endChoice();
+                .log(LoggingLevel.INFO, "No routing specified for this type of action.").endChoice();
 
         /**
          * Account balance response handler
