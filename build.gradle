@@ -57,6 +57,7 @@ dependencies {
     implementation 'io.camunda:zeebe-client-java:1.1.0'
     implementation 'com.auth0:java-jwt:3.10.2'
     testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.2'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:$springBootVersion'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
     checkstyle 'com.puppycrawl.tools:checkstyle:10.9.3'
