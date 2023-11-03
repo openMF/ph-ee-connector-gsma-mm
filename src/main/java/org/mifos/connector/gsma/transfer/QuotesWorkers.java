@@ -1,6 +1,13 @@
 package org.mifos.connector.gsma.transfer;
 
+import static org.mifos.connector.gsma.camel.config.CamelProperties.CHANNEL_REQUEST;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.GSMA_CHANNEL_REQUEST;
+import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_ID;
+import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.QUOTE_RETRY_COUNT;
+
 import io.camunda.zeebe.client.ZeebeClient;
+import java.util.Map;
+import javax.annotation.PostConstruct;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
@@ -10,12 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.Map;
-
-import static org.mifos.connector.gsma.camel.config.CamelProperties.*;
-import static org.mifos.connector.gsma.zeebe.ZeebeExpressionVariables.QUOTE_RETRY_COUNT;
 
 @Component
 public class QuotesWorkers {
@@ -37,28 +38,20 @@ public class QuotesWorkers {
     @PostConstruct
     public void setupWorkers() {
 
-        zeebeClient.newWorker()
-                .jobType("quote-gsma-payer")
-                .handler((client, job) -> {
-                    logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
-                    Map<String, Object> variables = job.getVariablesAsMap();
-                    variables.put(QUOTE_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(QUOTE_RETRY_COUNT, -1));
+        zeebeClient.newWorker().jobType("quote-gsma-payer").handler((client, job) -> {
+            logger.info("Job '{}' started from process '{}' with key {}", job.getType(), job.getBpmnProcessId(), job.getKey());
+            Map<String, Object> variables = job.getVariablesAsMap();
+            variables.put(QUOTE_RETRY_COUNT, 1 + (Integer) variables.getOrDefault(QUOTE_RETRY_COUNT, -1));
 
-                    Exchange exchange = new DefaultExchange(camelContext);
-                    exchange.setProperty(TRANSACTION_ID, variables.get("transactionId"));
-                    exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
-                    exchange.setProperty(GSMA_CHANNEL_REQUEST, variables.get("gsmaChannelRequest"));
+            Exchange exchange = new DefaultExchange(camelContext);
+            exchange.setProperty(TRANSACTION_ID, variables.get("transactionId"));
+            exchange.setProperty(CHANNEL_REQUEST, variables.get("channelRequest"));
+            exchange.setProperty(GSMA_CHANNEL_REQUEST, variables.get("gsmaChannelRequest"));
 
-                    producerTemplate.send("direct:quote-route-base", exchange);
+            producerTemplate.send("direct:quote-route-base", exchange);
 
-                    client.newCompleteCommand(job.getKey())
-                            .variables(variables)
-                            .send()
-                            .join();
-                })
-                .name("quote-gsma-payer")
-                .maxJobsActive(workerMaxJobs)
-                .open();
+            client.newCompleteCommand(job.getKey()).variables(variables).send().join();
+        }).name("quote-gsma-payer").maxJobsActive(workerMaxJobs).open();
 
     }
 

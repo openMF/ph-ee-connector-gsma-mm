@@ -9,7 +9,7 @@ jobs:
     executor: docker-executor
     environment:
       JVM_OPTS: -Xmx512m
-      TERM: dumb  
+      TERM: dumb
       GITHUB_TOKEN: ${GITHUB_TOKEN}  # Add the GitHub token as an environment variable
 
     steps:
@@ -37,7 +37,7 @@ jobs:
             docker push "openmf/ph-ee-connector-gsma:$IMAGE_TAG"
 
           # when: always  # The job will be executed even if there's no match for the tag filter
-  
+
   build_and_push_latest_image:
     executor: docker-executor
     environment:
@@ -54,7 +54,9 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            ./gradlew bootJar
+            ./gradlew checkstyleMain
+            ./gradlew checkstyleTest
+            ./gradlew clean bootJar
             docker build -t openmf/ph-ee-connector-gsma:latest .
 
       # Log in to DockerHub using environment variables
@@ -65,7 +67,7 @@ jobs:
       # Push the Docker image to DockerHub
       - run:
           name: Push Docker image to DockerHub
-          command: docker push openmf/ph-ee-connector-gsma:latest        
+          command: docker push openmf/ph-ee-connector-gsma:latest
 
 workflows:
   version: 2
@@ -80,4 +82,3 @@ workflows:
       - build_and_push_latest_image:
           context:
               - DOCKER
-             
