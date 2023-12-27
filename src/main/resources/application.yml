@@ -1,5 +1,6 @@
 camel:
   server-port: ${PORT:5000}
+  disable-ssl: true
   host: "https://webhook.site/0d1bcf85-f42a-462e-809f-b1d4dca2a0cc" # Host URL for callback
   springboot:
     main-run-controller: true
@@ -28,6 +29,6 @@ gsma:
   api:
     host: https://sandbox.mobilemoneyapi.io/oauth/simulator/v1.1/mm
     account: /accounts
-    channel: http://ph-ee-connector-channel
+    channel: https://ph-ee-connector-channel:8443
 
 dfspids: "DFSPID"
