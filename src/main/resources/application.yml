@@ -34,8 +34,8 @@ dfspids: "DFSPID"
 
 
 management:
-  server:
-    port: 5000
+#  server:
+#    port: 5000
   endpoint:
     health:
       probes:
@@ -44,3 +44,4 @@ management:
         enabled: true
       readiness:
         enabled: true
+      show-details: always
