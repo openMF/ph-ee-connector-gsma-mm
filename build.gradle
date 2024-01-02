@@ -44,6 +44,10 @@ spotless {
     lineEndings 'UNIX'
 }
 
+ext {
+    springBootVersion = '2.6.2'
+}
+
 dependencies {
     implementation 'org.mifos:ph-ee-connector-common:1.0.0-SNAPSHOT'
     implementation 'org.apache.camel.springboot:camel-spring-boot-starter:3.12.0'
@@ -63,6 +67,9 @@ dependencies {
     checkstyle 'com.github.sevntu-checkstyle:sevntu-checks:1.44.1'
     implementation 'com.diffplug.gradle.spotless:spotless:2.4.1'
     implementation 'com.diffplug.spotless:spotless-plugin-gradle:6.17.0'
+    implementation 'org.springframework.boot:spring-boot-starter:2.5.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.5.2'
+    implementation "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
 }
 configure(this) {
     // NOTE: order matters!

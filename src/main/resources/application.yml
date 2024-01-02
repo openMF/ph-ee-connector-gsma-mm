@@ -32,3 +32,17 @@ gsma:
     channel: https://ph-ee-connector-channel:8443
 
 dfspids: "DFSPID"
+
+
+management:
+#  server:
+#    port: 5000
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      liveness:
+        enabled: true
+      readiness:
+        enabled: true
+#      show-details: always
