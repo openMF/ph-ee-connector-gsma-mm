@@ -53,8 +53,8 @@ public class AuthRoutes extends RouteBuilder {
 
                     @Override
                     public void process(Exchange exchange) throws Exception {
-                        accessTokenStore.setAccessToken(exchange.getIn().getBody(AccessTokenDTO.class).getAccess_token());
-                        accessTokenStore.setExpiresOn(exchange.getIn().getBody(AccessTokenDTO.class).getExpires_in());
+                        accessTokenStore.setAccessToken(exchange.getIn().getBody(AccessTokenDTO.class).getaccessToken());
+                        accessTokenStore.setExpiresOn(exchange.getIn().getBody(AccessTokenDTO.class).getexpiresIn());
                         logger.info("Saved Access Token: " + accessTokenStore.getAccessToken());
                     }
                 });
