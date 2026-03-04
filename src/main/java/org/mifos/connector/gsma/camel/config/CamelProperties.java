@@ -3,7 +3,7 @@ package org.mifos.connector.gsma.camel.config;
 /**
  * Central Definition of all the Camel Exchange Properties
  */
-public class CamelProperties {
+public final class CamelProperties {
 
     private CamelProperties() {}
 

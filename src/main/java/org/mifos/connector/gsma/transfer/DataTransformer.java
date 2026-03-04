@@ -10,8 +10,6 @@ public class DataTransformer {
     public QuotesDTO getQuoteRequestBody(TransactionChannelRequestDTO channelRequest) {
         QuotesDTO quote = new QuotesDTO();
 
-
-
         return quote;
     }
 

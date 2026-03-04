@@ -1,17 +1,20 @@
 package org.mifos.connector.gsma.auth;
 
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AccessTokenStore {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public String accessToken;
     public LocalDateTime expiresOn;
 
     public AccessTokenStore() {
         this.expiresOn = LocalDateTime.now();
-        System.out.println("ACCESS TOKEN STORE CREATED!");
+        logger.info("ACCESS TOKEN STORE CREATED!");
     }
 
     public String getAccessToken() {
@@ -31,10 +34,11 @@ public class AccessTokenStore {
     }
 
     public boolean isValid(LocalDateTime dateTime) {
-        if (dateTime.isBefore(expiresOn))
+        if (dateTime.isBefore(expiresOn)) {
             return true;
-        else
+        } else {
             return false;
+        }
     }
 
 }

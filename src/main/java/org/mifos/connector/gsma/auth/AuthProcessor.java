@@ -12,7 +12,5 @@ public class AuthProcessor implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
 
-
-
     }
 }

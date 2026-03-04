@@ -1,5 +1,4 @@
-FROM openjdk:13
+FROM eclipse-temurin:17-jdk
 
-COPY target/*.jar .
+COPY build/libs/*.jar .
 CMD java -jar *.jar
-

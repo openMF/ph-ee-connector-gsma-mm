@@ -1,6 +1,6 @@
 package org.mifos.connector.gsma.zeebe;
 
-public class ZeebeMessages {
+public final class ZeebeMessages {
 
     public static final String SAMPLE_MESSAGE = "sample_message";
     public static final String ACCOUNT_STATUS = "accountStatus";
@@ -9,7 +9,6 @@ public class ZeebeMessages {
     public static final String GSMA_QUOTE_RESPONSE = "gsmaQuoteResponse";
     public static final String TRANSFER_MESSAGE = "transfer-message";
 
-    private ZeebeMessages() {
-    }
+    private ZeebeMessages() {}
 
 }
