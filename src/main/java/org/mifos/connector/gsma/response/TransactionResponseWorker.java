@@ -8,8 +8,8 @@ import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_
 import static org.mifos.connector.gsma.camel.config.CamelProperties.TRANSACTION_OBJECT_AVAILABLE;
 
 import io.camunda.zeebe.client.ZeebeClient;
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;

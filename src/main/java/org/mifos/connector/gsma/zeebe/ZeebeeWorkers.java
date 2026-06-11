@@ -4,8 +4,8 @@ import static org.mifos.connector.gsma.zeebe.ZeebeVariables.QUOTE_SWITCH_RESULT;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.zeebe.client.ZeebeClient;
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.mifos.connector.common.channel.dto.TransactionChannelRequestDTO;
 import org.mifos.connector.common.mojaloop.dto.QuoteSwitchRequestDTO;
 import org.mifos.connector.common.mojaloop.type.AmountType;

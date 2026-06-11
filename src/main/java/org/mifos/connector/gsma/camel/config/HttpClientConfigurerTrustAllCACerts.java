@@ -3,24 +3,22 @@ package org.mifos.connector.gsma.camel.config;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import org.apache.camel.component.http.HttpClientConfigurer;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TrustAllStrategy;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+// Ported from Apache HttpClient 4 to HttpClient 5: camel-http in Camel 4 passes
+// an HC5 HttpClientBuilder to HttpClientConfigurer. Behaviour is unchanged
+// (trust all certificates, no hostname verification).
 @Component
 public class HttpClientConfigurerTrustAllCACerts implements HttpClientConfigurer {
 
@@ -34,32 +32,17 @@ public class HttpClientConfigurerTrustAllCACerts implements HttpClientConfigurer
         //
         SSLContext sslContext = null;
         try {
-            sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
-
-                public boolean isTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
-                    return true;
-                }
-            }).build();
+            sslContext = SSLContextBuilder.create().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build();
         } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException e) {
             logger.debug(e.getMessage());
         }
-        clientBuilder.setSslcontext(sslContext);
 
-        // don't check Hostnames, either.
-        // -- use SSLConnectionSocketFactory.getDefaultHostnameVerifier(), if you don't want to weaken
-        HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-
-        // here's the special part:
-        // -- need to create an SSL Socket Factory, to use our weakened "trust strategy";
-        // -- and create a Registry, to register it.
-        //
-        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.getSocketFactory()).register("https", sslSocketFactory).build();
-
-        // now, we create connection-manager using our Registry.
-        // -- allows multi-threaded use
-        PoolingHttpClientConnectionManager connMgr = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        // don't check Hostnames, either, and use our weakened trust strategy.
+        // In HttpClient 5 the TLS configuration travels with the connection
+        // manager instead of the client builder.
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        PoolingHttpClientConnectionManager connMgr = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(sslSocketFactory).build();
         clientBuilder.setConnectionManager(connMgr);
     }
 

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jre
 
 COPY build/libs/*.jar .
 CMD java -jar *.jar
